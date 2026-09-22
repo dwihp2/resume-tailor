@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeleteRunButton } from "@/components/DeleteRunButton";
 import { UploadForm } from "@/components/UploadForm";
 import { modelLabel } from "@/lib/model";
 import { listRuns } from "@/lib/run";
@@ -36,8 +37,8 @@ export default async function Home() {
                 evaluation.revisions.some((revision) => revision.decision !== "pending"),
               ).length;
               return (
-                <li key={run.id}>
-                  <Link href={`/runs/${run.id}`} className="block px-4 py-3 hover:bg-neutral-900">
+                <li key={run.id} className="flex items-center gap-2 pr-3">
+                  <Link href={`/runs/${run.id}`} className="block flex-1 px-4 py-3 hover:bg-neutral-900">
                     <div className="flex items-baseline justify-between gap-4">
                       <span className="font-medium">{run.resume.title}</span>
                       <span className="text-xs text-neutral-500">
@@ -51,6 +52,7 @@ export default async function Home() {
                       {run.evaluations.length} scored, {decided} decided
                     </p>
                   </Link>
+                  <DeleteRunButton runId={run.id} label={run.resume.title} />
                 </li>
               );
             })}

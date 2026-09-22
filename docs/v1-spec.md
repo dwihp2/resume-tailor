@@ -15,6 +15,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 7. Re-scoring the same resume and JD reproduces the same Match Scores whenever Feature Extraction is identical, which the e2e run asserts against the offline model. With a live model, extraction can differ between runs; `scoring_version` and `inputs_hash` are stored per evaluation so a changed score is attributable to a changed extraction instead of being unexplainable.
 8. Editing a bullet that has already been scored marks its Match Score **stale** and withdraws the question that belonged to the old text; scoring again clears the mark and asks a question about the text you have now. A score never silently outlives the text it was computed from.
 9. The candidate can paste their **notes** once per run, and any gap question can be **drafted from them**. A draft only fills the answer box: the candidate still saves the answer themselves, and it is that saved answer — never the notes — that the rewrite may use.
+10. A run can be deleted from the run list, behind one confirmation. The resume, job description and every evaluation, story and revision it created are deleted with it.
 
 Step 1 is not optional polish: PDF line wrapping routinely splits one bullet into fragments, and scoring fragments produces confident nonsense. Hand-fixing segmentation is what makes the rest of the loop trustworthy.
 

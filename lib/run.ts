@@ -480,3 +480,18 @@ export async function draftAnswer(evaluationId: string): Promise<AnswerDraftResu
     ? { answer: null, basedOn: [], refused: true }
     : { answer: draft.answer, basedOn: draft.basedOn, refused: false };
 }
+
+/**
+ * A run owns the resume and job description it was created from (CONTEXT.md),
+ * so deleting a run removes them too. Bullets, evaluations, stories and
+ * revisions all cascade from those rows.
+ */
+export async function deleteRun(runId: string) {
+  const run = await prisma.tailoringRun.findUniqueOrThrow({ where: { id: runId } });
+  await prisma.$transaction([
+    prisma.tailoringRun.delete({ where: { id: runId } }),
+    prisma.resume.delete({ where: { id: run.resumeId } }),
+    prisma.jobDescription.delete({ where: { id: run.jobDescriptionId } }),
+  ]);
+  return { deleted: runId };
+}

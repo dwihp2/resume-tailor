@@ -23,7 +23,7 @@ _Avoid_: job posting, vacancy, role spec
 ## Evaluation
 
 **Tailoring Run**:
-One resume paired with one JD, and the container for everything that happens between them.
+One resume paired with one JD, and the container for everything that happens between them. A run owns the resume and the JD it was created from — they exist for it alone, so deleting the run deletes them.
 _Avoid_: session, audit, analysis, review
 
 **JD Requirements**:
