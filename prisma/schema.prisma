@@ -1,0 +1,153 @@
+// Resume Tailor — schema follows docs/v1-spec.md §"Data model (delta vs PRD §4)".
+// Deviations from the PRD are deliberate and recorded in docs/adr/.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// A revision's verdict. `pending` is the state of a revision nobody has
+/// looked at yet, so every revision carries exactly one decision.
+enum Decision {
+  pending
+  accepted
+  edited
+  rejected
+}
+
+/// ADR-0002: one seeded row in V1, but every table hangs off it so multi-tenant
+/// is additive later.
+model User {
+  id              String           @id @default(uuid()) @db.Uuid
+  email           String           @unique
+  createdAt       DateTime         @default(now()) @map("created_at")
+  resumes         Resume[]
+  jobDescriptions JobDescription[]
+  runs            TailoringRun[]
+
+  @@map("users")
+}
+
+model Resume {
+  id        String         @id @default(uuid()) @db.Uuid
+  ownerId   String         @map("owner_id") @db.Uuid
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title     String
+  rawText   String         @map("raw_text")
+  createdAt DateTime       @default(now()) @map("created_at")
+  bullets   ResumeBullet[]
+  runs      TailoringRun[]
+
+  @@map("resumes")
+}
+
+model JobDescription {
+  id           String          @id @default(uuid()) @db.Uuid
+  ownerId      String          @map("owner_id") @db.Uuid
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  companyName  String?         @map("company_name")
+  roleTitle    String?         @map("role_title")
+  rawText      String          @map("raw_text")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  requirements JdRequirements?
+  runs         TailoringRun[]
+
+  @@map("job_descriptions")
+}
+
+/// Extracted once per job description, never once per bullet.
+model JdRequirements {
+  id               String         @id @default(uuid()) @db.Uuid
+  jobDescriptionId String         @unique @map("job_description_id") @db.Uuid
+  jobDescription   JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+  skills           Json
+  tools            Json
+  domainTerms      Json           @map("domain_terms")
+  senioritySignals Json           @map("seniority_signals")
+  promptVersion    String         @map("prompt_version")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@map("jd_requirements")
+}
+
+/// ADR-0003: carries no status. Progress is derived from the rows below it.
+model TailoringRun {
+  id               String             @id @default(uuid()) @db.Uuid
+  ownerId          String             @map("owner_id") @db.Uuid
+  owner            User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  resumeId         String             @map("resume_id") @db.Uuid
+  resume           Resume             @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobDescriptionId String             @map("job_description_id") @db.Uuid
+  jobDescription   JobDescription     @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  evaluations      BulletEvaluation[]
+
+  @@map("tailoring_runs")
+}
+
+/// Editable after segmentation: the user fixes wrapping before anything is scored.
+model ResumeBullet {
+  id           String             @id @default(uuid()) @db.Uuid
+  resumeId     String             @map("resume_id") @db.Uuid
+  resume       Resume             @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  section      String?
+  text         String
+  displayOrder Int                @map("display_order")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  evaluations  BulletEvaluation[]
+
+  @@map("resume_bullets")
+}
+
+model BulletEvaluation {
+  id             String       @id @default(uuid()) @db.Uuid
+  runId          String       @map("run_id") @db.Uuid
+  run            TailoringRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  bulletId       String       @map("bullet_id") @db.Uuid
+  bullet         ResumeBullet @relation(fields: [bulletId], references: [id], onDelete: Cascade)
+  features       Json
+  matchScore     Int          @map("match_score")
+  matchedTerms   Json         @map("matched_terms")
+  missingTerms   Json         @map("missing_terms")
+  overlapGap     Boolean      @map("overlap_gap")
+  evidenceGap    Boolean      @map("evidence_gap")
+  question       String?
+  scoringVersion String       @map("scoring_version")
+  inputsHash     String       @map("inputs_hash")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  stories        BulletStory[]
+  revisions      BulletRevision[]
+
+  @@unique([runId, bulletId])
+  @@map("bullet_evaluations")
+}
+
+model BulletStory {
+  id           String           @id @default(uuid()) @db.Uuid
+  evaluationId String           @map("evaluation_id") @db.Uuid
+  evaluation   BulletEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  rawInput     String           @map("raw_input")
+  storyFacts   Json             @map("story_facts")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@map("bullet_stories")
+}
+
+model BulletRevision {
+  id           String           @id @default(uuid()) @db.Uuid
+  evaluationId String           @map("evaluation_id") @db.Uuid
+  evaluation   BulletEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  revisionText String           @map("revision_text")
+  claimsUsed   Json             @map("claims_used")
+  decision     Decision         @default(pending)
+  decidedText  String?          @map("decided_text")
+  decidedAt    DateTime?        @map("decided_at")
+  modelName    String           @map("model_name")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@map("bullet_revisions")
+}
