@@ -112,6 +112,15 @@ function BulletCard({ bullet }: { bullet: RunBulletView }) {
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1 text-xs">
+          {bullet.stale ? (
+            <span
+              data-testid="stale-score"
+              className="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-300"
+              title="This bullet changed since it was scored. Score it again to refresh the number and the terms."
+            >
+              Score is stale — re-score
+            </span>
+          ) : null}
           {bullet.overlapGap ? (
             <span data-testid="overlap-gap" className="rounded bg-amber-950 px-1.5 py-0.5 text-amber-300">
               Overlap gap

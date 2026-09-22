@@ -63,7 +63,8 @@ npm run test:e2e        # npx playwright test
 `tests/smoke.spec.ts` uploads a generated PDF fixture, checks that every line is segmented (including lines with
 no bullet glyph), scores all 8 bullets, and asserts they render worst-first with an overlap gap and a question on
 the weakest one. `tests/segmentation.spec.ts` covers the editor that runs before scoring: edit, merge, reorder,
-drop and add, and it checks that only the surviving bullets get scored. `tests/loop.spec.ts` drives the full loop
+drop and add, it checks that only the surviving bullets get scored, and it checks that editing a scored bullet
+marks that score stale until the run is scored again. `tests/loop.spec.ts` drives the full loop
 in the browser: answer a question, generate a revision, accept it and copy it out, reject and regenerate without
 losing the earlier revision, edit a revision and keep the edited wording, and confirm re-scoring the same inputs
 yields identical scores. Playwright runs the app with `LLM_PROVIDER=fake`, so the e2e suite needs no API key and
@@ -115,8 +116,8 @@ Tables in `prisma/schema.prisma`:
 - `job_descriptions` — the pasted JD text; `jd_requirements` — the terms extracted once per JD.
 - `tailoring_runs` — one resume paired with one JD; stores only its identity and inputs.
 - `resume_bullets` — the segmented bullets, editable before scoring.
-- `bullet_evaluations` — per-bullet features, match score, matched/missing terms, gap flags, question, scoring
-  version, inputs hash.
+- `bullet_evaluations` — per-bullet features, the text it scored, match score, matched/missing terms, gap flags,
+  question, scoring version, inputs hash.
 - `bullet_stories` — the candidate's raw answer and the Story Facts extracted from it.
 - `bullet_revisions` — each generated rewrite, its claims, decision, and model.
 

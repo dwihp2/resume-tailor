@@ -51,7 +51,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
       {scored ? <BulletWorkbench bullets={run.bullets} /> : null}
 
-      <details open={!scored} className="rounded border border-neutral-800 p-4">
+      <details
+        open={!scored}
+        data-testid="segmentation-panel"
+        className="rounded border border-neutral-800 p-4"
+      >
         <summary className="cursor-pointer text-sm text-neutral-400">
           Segmentation {scored ? "(edit and re-score)" : "— fix this before scoring"}
         </summary>

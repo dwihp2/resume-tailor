@@ -110,6 +110,9 @@ model BulletEvaluation {
   bulletId       String       @map("bullet_id") @db.Uuid
   bullet         ResumeBullet @relation(fields: [bulletId], references: [id], onDelete: Cascade)
   features       Json
+  /// The bullet text this score was computed from, so editing a bullet can be
+  /// shown as a stale score instead of silently reusing the old number.
+  evaluatedText  String?      @map("evaluated_text")
   matchScore     Int          @map("match_score")
   matchedTerms   Json         @map("matched_terms")
   missingTerms   Json         @map("missing_terms")

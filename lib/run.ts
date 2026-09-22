@@ -21,6 +21,7 @@ export type RunBulletView = {
   text: string;
   displayOrder: number;
   score: number | null;
+  stale: boolean;
   matched: string[];
   missing: string[];
   overlapGap: boolean;
@@ -112,6 +113,8 @@ export async function getRunView(runId: string): Promise<RunView | null> {
       text: bullet.text,
       displayOrder: bullet.displayOrder,
       score: evaluation?.matchScore ?? null,
+      stale:
+        evaluation?.evaluatedText != null ? evaluation.evaluatedText !== bullet.text : false,
       matched: asStrings(evaluation?.matchedTerms),
       missing: asStrings(evaluation?.missingTerms),
       overlapGap: evaluation?.overlapGap ?? false,
@@ -245,6 +248,7 @@ export async function evaluateRun(runId: string): Promise<{ scored: number }> {
         const result = scoreBullet(features, requirements);
         const data = {
           features,
+          evaluatedText: bullet.text,
           matchScore: result.score,
           matchedTerms: result.matched,
           missingTerms: result.missing,

@@ -31,7 +31,7 @@ The structured facts read out of one bullet: the skills and tools it names, the 
 _Avoid_: parsing, Jev output, analysis
 
 **Match Score**:
-An integer 0–100 expressing how far one bullet's Feature Extraction overlaps one JD's requirements. The same extraction and the same requirements always produce the same score.
+An integer 0–100 expressing how far one bullet's Feature Extraction overlaps one JD's requirements. The same extraction and the same requirements always produce the same score. A score describes the text it was computed from, so once that text changes the score is stale until it is computed again.
 _Avoid_: relevance score, relevanceScore, rating, percentage match
 
 **Overlap Gap**:

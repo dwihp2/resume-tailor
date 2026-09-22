@@ -75,7 +75,7 @@ export function SegmentationEditor({
               <span>#{index + 1}</span>
             </div>
             <textarea
-              data-testid="bullet-text"
+              data-testid="bullet-input"
               rows={2}
               value={drafts[bullet.id] ?? bullet.text}
               onChange={(event) => setDrafts((current) => ({ ...current, [bullet.id]: event.target.value }))}
