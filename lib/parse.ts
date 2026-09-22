@@ -110,6 +110,11 @@ function looksLikeTitle(line: string, next: string | undefined): boolean {
   return line.length <= 60 && line.split(/\s+/).length <= 8 && !/[.;,]$/.test(line);
 }
 
+/** A long, punctuated line: a summary paragraph, as opposed to a contact detail. */
+function isProse(line: string): boolean {
+  return line.length > 80 && /[.]$/.test(line);
+}
+
 function stripGlyph(line: string): string {
   return line.replace(BULLET_GLYPHS, "").replace(NUMBERED, "").trim();
 }
@@ -124,7 +129,7 @@ function cleanText(text: string): string {
     .trim();
 }
 
-type Mode = "line" | "whole" | "item";
+type Mode = "whole" | "item";
 
 type Entry = {
   lines: string[];
@@ -136,12 +141,24 @@ type Entry = {
   details: number;
 };
 
+function buildEntry(line: string): Entry {
+  return {
+    lines: [stripGlyph(line)],
+    openedByHeader: !isGlyphLine(line),
+    anchored: isGlyphLine(line) || DATE_START.test(line),
+    // A date line often carries its own title ("08/2025 - 05/2026 Dev"), so
+    // only a bullet counts as substance at this point.
+    details: isGlyphLine(line) ? 1 : 0,
+  };
+}
+
 /**
  * Pure text -> bullets. The unit is an *entry*, not a line: PDF extraction
  * drops bullet glyphs and wraps prose, so line-based segmentation cuts one job
  * into six fragments and a skill list into eleven bullets. An entry absorbs its
- * title, its employer, its dates and its responsibilities; a section that is a
- * list or a paragraph stays a single bullet (ADR-0006).
+ * title, employer, dates and responsibilities; a section that is a list or a
+ * paragraph stays a single bullet; the header above the first heading — name,
+ * phone, links — is left out entirely (ADR-0006).
  */
 export function segmentBullets(rawText: string): ParsedBullet[] {
   const lines = rawText
@@ -150,38 +167,26 @@ export function segmentBullets(rawText: string): ParsedBullet[] {
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
+  // A document with no headings at all has no structure to judge, so every line
+  // is kept rather than guessing which parts are the header.
+  if (!lines.some((line) => headingLabel(line) !== null)) {
+    return lines
+      .map((line) => cleanText(stripGlyph(line)))
+      .filter((text) => text.length >= 2)
+      .map((text, order) => ({ section: null, text, order }));
+  }
+
   const bullets: ParsedBullet[] = [];
   let section: string | null = null;
   let current: Entry | null = null;
-  let currentSection: string | null = null;
-  let currentMode: Mode = "line";
 
   const flush = () => {
     if (!current) return;
     const text = cleanText(current.lines.join(" "));
     if (text.length >= 2) {
-      bullets.push({ section: currentSection, text, order: bullets.length });
+      bullets.push({ section, text, order: bullets.length });
     }
     current = null;
-  };
-
-  const open = (line: string, mode: Mode) => {
-    current = {
-      lines: [stripGlyph(line)],
-      openedByHeader: !isGlyphLine(line),
-      anchored: isGlyphLine(line) || DATE_START.test(line),
-      // A date line often carries its own title ("08/2025 - 05/2026 Dev"), so
-      // only a bullet counts as substance at this point.
-      details: isGlyphLine(line) ? 1 : 0,
-    };
-    currentSection = section;
-    currentMode = mode;
-  };
-
-  const push = (entry: Entry, line: string) => {
-    entry.lines.push(stripGlyph(line));
-    if (isGlyphLine(line) || line.length > 60) entry.details += 1;
-    if (isGlyphLine(line) || DATE_START.test(line)) entry.anchored = true;
   };
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -194,38 +199,47 @@ export function segmentBullets(rawText: string): ParsedBullet[] {
       continue;
     }
 
-    const mode: Mode = section === null ? "line" : WHOLE_SECTION.has(section.toLowerCase()) ? "whole" : "item";
+    // Everything above the first heading is the resume header — name, job
+    // title, phone, portfolio links — which is not job-relevant content and is
+    // left out. A long prose line up there is a summary that lost its heading.
+    if (section === null) {
+      if (isProse(line)) {
+        bullets.push({ section: null, text: cleanText(stripGlyph(line)), order: bullets.length });
+      }
+      continue;
+    }
 
-    // `flush` and `open` assign `current` inside closures, which control-flow
-    // analysis cannot follow, so the read is cast back to the declared shape.
+    const mode: Mode = WHOLE_SECTION.has(section.toLowerCase()) ? "whole" : "item";
+    // `flush` assigns `current` inside a closure, which control-flow analysis
+    // cannot follow, so the read is cast back to the declared shape.
     const entry = current as Entry | null;
-    if (!entry || currentMode !== mode || mode === "line") {
-      flush();
-      open(line, mode);
+
+    if (!entry) {
+      current = buildEntry(line);
       continue;
     }
 
     if (mode === "whole") {
-      push(entry, line);
+      entry.lines.push(stripGlyph(line));
       continue;
     }
 
     const glyph = isGlyphLine(line);
     const dated = DATE_START.test(line);
-    const title = looksLikeTitle(line, lines[index + 1]);
-
     // A school or employer line sits *under* its date, so a title only opens a
     // new entry once the current entry already has substance.
-    const startsTitle = title && entry.anchored && entry.details > 0;
+    const startsTitle = looksLikeTitle(line, lines[index + 1]) && entry.anchored && entry.details > 0;
     const startsNewEntry = glyph ? !entry.openedByHeader : dated ? entry.anchored : startsTitle;
 
     if (startsNewEntry) {
       flush();
-      open(line, mode);
+      current = buildEntry(line);
       continue;
     }
 
-    push(entry, line);
+    entry.lines.push(stripGlyph(line));
+    if (glyph || dated) entry.anchored = true;
+    if (glyph || line.length > 60) entry.details += 1;
   }
 
   flush();

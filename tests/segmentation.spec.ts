@@ -31,49 +31,49 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
         (node as HTMLDetailsElement).open = true;
       });
 
-  await expect(rows).toHaveCount(6);
+  await expect(rows).toHaveCount(5);
 
-  // Edit: the header line the extractor read as a bullet becomes a real headline.
+  // Edit: a bullet the extractor read badly can be rewritten by hand.
   await expect(page.getByTestId("save-bullet").first()).toBeDisabled();
-  await inputs.first().fill("Muhammad Example — Senior Fullstack Engineer");
+  await inputs.first().fill("Frontend engineer with six years of experience building internal tools.");
   const edited = settle();
   await page.getByTestId("save-bullet").first().click();
   expect((await edited).ok()).toBeTruthy();
-  await expect(inputs.first()).toHaveValue("Muhammad Example — Senior Fullstack Engineer");
+  await expect(inputs.first()).toHaveValue("Frontend engineer with six years of experience building internal tools.");
 
-  // Merge: a line that ended up as its own entry joins the one above it.
+  // Merge: a bullet that ended up as its own entry joins the one above it.
   const merged = settle();
-  await page.getByTestId("merge-bullet").nth(5).click();
+  await page.getByTestId("merge-bullet").nth(4).click();
   expect((await merged).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(5);
-  await expect(inputs.nth(4)).toHaveValue(/Rebuilt the reporting dashboard .*BSc Computer Science/);
+  await expect(rows).toHaveCount(4);
+  await expect(inputs.nth(3)).toHaveValue(/Rebuilt the reporting dashboard .*BSc Computer Science/);
 
   // Reorder: the merged row moves above the row before it.
   const moved = settle();
-  await page.getByTestId("move-up").nth(4).click();
+  await page.getByTestId("move-up").nth(3).click();
   expect((await moved).ok()).toBeTruthy();
-  await expect(inputs.nth(3)).toHaveValue(/Rebuilt the reporting dashboard/);
+  await expect(inputs.nth(2)).toHaveValue(/Rebuilt the reporting dashboard/);
 
-  // Drop: a line that is not an achievement leaves the resume.
+  // Drop: a bullet that does not belong in this resume leaves it.
   const dropped = settle();
   await page.getByTestId("drop-bullet").first().click();
   expect((await dropped).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(4);
-  await expect(inputs.first()).toHaveValue(/Frontend engineer with six years/);
+  await expect(rows).toHaveCount(3);
+  await expect(inputs.first()).toHaveValue(/Rushowl - Frontend Engineer/);
 
   // Add: text the extractor lost entirely can be restored by hand.
   await page.getByTestId("add-bullet-input").fill("Led the migration off the legacy .NET tools");
   const added = settle();
   await page.getByTestId("add-bullet").click();
   expect((await added).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(5);
+  await expect(rows).toHaveCount(4);
   await expect(inputs.last()).toHaveValue("Led the migration off the legacy .NET tools");
 
   // Only what survived the editor gets scored.
   const evaluated = page.waitForResponse((response) => response.url().includes("/evaluate"));
   await page.getByTestId("score-bullets").click();
   expect((await evaluated).ok()).toBeTruthy();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(5);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(4);
   await expect(page.getByTestId("stale-score")).toHaveCount(0);
 
   // Editing a scored bullet flags the old score rather than quietly reusing it.
@@ -95,11 +95,11 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   await expect(page.getByTestId("stale-score")).toHaveCount(0);
   await expect(page.getByTestId("stale-question-notice")).toHaveCount(0);
   await expect(page.getByTestId("bullet-question").first()).toBeVisible();
-  await expect(page.getByTestId("progress")).toContainText("5 scored");
+  await expect(page.getByTestId("progress")).toContainText("4 scored");
 
   // The run list is the way back in, and it reports the same counts.
   await page.click("text=← All runs");
   const entry = page.getByTestId("run-list").locator("li").first();
   await expect(entry).toContainText("resume.pdf");
-  await expect(entry).toContainText("5 scored");
+  await expect(entry).toContainText("4 scored");
 });

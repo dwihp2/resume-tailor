@@ -18,17 +18,18 @@ test("uploads a resume, segments it, and scores every bullet against a job descr
   await page.waitForURL(/\/runs\/[0-9a-f-]+$/);
   await expect(page.getByTestId("progress")).toContainText("0 scored");
 
-  // Every entry of the fixture is accounted for: a bullet per job (with its
-  // responsibilities), a bullet for the summary, the project and the degree.
-  await expect(page.getByTestId("segmentation-row")).toHaveCount(6);
+  // The header above the first heading is left out, so what remains is one
+  // bullet per job with its responsibilities, plus summary, project and degree.
+  await expect(page.getByTestId("segmentation-row")).toHaveCount(5);
   await expect(page.getByTestId("segmentation-list")).toContainText("Built an accounting module");
   await expect(page.getByTestId("segmentation-list")).toContainText("Frontend engineer with six years");
+  await expect(page.getByTestId("segmentation-list")).not.toContainText("Muhammad Example");
 
   await page.click('[data-testid="score-bullets"]');
-  await expect(page.getByTestId("progress")).toContainText("6 scored");
+  await expect(page.getByTestId("progress")).toContainText("5 scored");
 
   const cards = page.getByTestId("bullet-card");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(5);
 
   // Worst first, and the bullet naming the job's stack must clearly beat the
   // bullet that names none of it.

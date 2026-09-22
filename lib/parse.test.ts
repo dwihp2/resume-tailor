@@ -132,6 +132,34 @@ Built the payments dashboard
     expect(bullets.map((bullet) => bullet.text)).toEqual(["Did a thing", "Did another thing"]);
   });
 
+  it("leaves the resume header out of the bullets", () => {
+    const bullets = segmentBullets(`Muhammad Dwi Heryanto Putro
+Software Engineer
++62 851-5615-7191 | m.dwiheryanto2@gmail.com
+LinkedIn | dwi-heryanto.vercel.app | Batam, Indonesia
+SUMMARY
+Frontend engineer with six years of experience.
+EXPERIENCE
+Rushowl - Frontend Engineer
+- Built the driver dashboard
+`);
+    expect(bullets.map((bullet) => bullet.section)).toEqual(["Summary", "Experience"]);
+    expect(bullets.every((bullet) => !/gmail|vercel|851-5615|Batam|LinkedIn/.test(bullet.text))).toBe(true);
+  });
+
+  it("keeps a summary that lost its heading, but not the phone number above it", () => {
+    const bullets = segmentBullets(`Muhammad Example
++62 851-5615-7191
+Detail-oriented engineer with over five years of experience building internal tools and shipping features end to end for small teams.
+EXPERIENCE
+- Built a thing
+`);
+    expect(bullets).toHaveLength(2);
+    expect(bullets[0].section).toBe(null);
+    expect(bullets[0].text).toContain("Detail-oriented engineer");
+    expect(bullets[1].section).toBe("Experience");
+  });
+
   it("canonicalises a heading the extractor split inside a word", () => {
     const bullets = segmentBullets(`SUMM ARY
 Frontend engineer with six years of experience.

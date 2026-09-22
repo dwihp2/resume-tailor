@@ -24,10 +24,10 @@ test("drafts an answer from the candidate's notes and refuses when they are sile
   const evaluated = page.waitForResponse((response) => response.url().includes("/evaluate"));
   await page.click('[data-testid="score-bullets"]');
   expect((await evaluated).ok()).toBeTruthy();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(6);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(5);
 
   const covered = page.getByTestId("bullet-card").filter({ hasText: "accounting module" });
-  const uncovered = page.getByTestId("bullet-card").filter({ hasText: "Muhammad Example" });
+  const uncovered = page.getByTestId("bullet-card").filter({ hasText: "BSc Computer Science" });
 
   // Nothing to draft from yet, and the button says so.
   await expect(covered.getByTestId("draft-answer")).toBeDisabled();

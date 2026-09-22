@@ -21,7 +21,10 @@ test("clears a whole noisy section in one confirmed action", async ({ page, requ
 
   const rows = page.getByTestId("segmentation-row");
   const tools = page.getByTestId("section-tools");
-  await expect(rows).toHaveCount(6);
+  await expect(rows).toHaveCount(5);
+  // The header above the first heading never became a bullet, so there is no
+  // headingless group to drop.
+  await expect(page.getByTestId("segmentation-list")).not.toContainText("Muhammad Example");
 
   // The fixture has two jobs in Experience; every other section holds one
   // bullet, which the per-row Drop button already covers.
@@ -37,18 +40,18 @@ test("clears a whole noisy section in one confirmed action", async ({ page, requ
   expect(response.ok()).toBeTruthy();
   expect((await response.json()).removed).toBe(2);
 
-  await expect(rows).toHaveCount(4);
+  await expect(rows).toHaveCount(3);
   await expect(tools).toHaveCount(0);
-  await expect(page.getByTestId("progress")).toContainText("4 bullets");
+  await expect(page.getByTestId("progress")).toContainText("3 bullets");
 
-  // The headingless bullets — the name, phone and links — are droppable through
-  // the same endpoint, which is how a real resume's contact block goes.
+  // Dropping the headingless group is still offered by the API, and now finds
+  // nothing, because the header was never imported as content.
   const resumeId = await page.getByTestId("segmentation-list").getAttribute("data-resume-id");
   const headingless = await request.post(`/api/resumes/${resumeId}/drop-section`, {
     data: { section: null },
   });
   expect(headingless.ok()).toBeTruthy();
-  expect((await headingless.json()).removed).toBe(1);
+  expect((await headingless.json()).removed).toBe(0);
 
   await page.reload();
   await expect(page.getByTestId("segmentation-row")).toHaveCount(3);
