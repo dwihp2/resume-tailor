@@ -69,7 +69,8 @@ the weakest one. `tests/segmentation.spec.ts` covers the editor that runs before
 drop and add, it checks that only the surviving bullets get scored, and it checks that editing a scored bullet
 marks that score stale until the run is scored again. `tests/focus.spec.ts` checks the triage groups (All /
 Worth fixing / Off target / Already quantified) and that their counts account for every bullet. `tests/sections.spec.ts` clears a whole section in one confirmed action, including the
-bullets that never got a heading. `tests/loop.spec.ts` drives the full loop
+bullets that never got a heading. `tests/notes.spec.ts` drafts an answer from the candidate's notes, saves it,
+rewrites from it, and checks that a bullet the notes do not cover is refused instead of invented. `tests/loop.spec.ts` drives the full loop
 in the browser: answer a question, generate a revision, accept it and copy it out, reject and regenerate without
 losing the earlier revision, edit a revision and keep the edited wording, and confirm re-scoring the same inputs
 yields identical scores. Playwright runs the app with `LLM_PROVIDER=fake`, so the e2e suite needs no API key and
@@ -100,7 +101,7 @@ Module map:
 - `lib/parse` — PDF text, bullet segmentation, normalization.
 - `lib/pdf` — PDF → plain text via `unpdf`; the only code that knows PDF internals.
 - `lib/score` — pure scoring and input hashing; imports nothing that does IO.
-- `lib/model` — the whole LLM surface (four extractions, one generation) plus the fake adapter and the model label.
+- `lib/model` — the whole LLM surface (JD requirements, bullet features, story facts, answer draft, revision) plus the fake adapter and the model label.
 - `lib/generate` — revision generation, including the check that rejects invented numbers.
 - `lib/prompts` — prompt text and versions, shared by the extraction and generation calls.
 - `lib/run` — the run orchestration: create, segment, evaluate, story, revision, decision.
@@ -108,8 +109,9 @@ Module map:
   word-level diff, HTTP helpers, Prisma client, and the single local owner.
 - `app/api/*` — thin route handlers: create run, edit·merge·delete bullets, evaluate, submit story, generate
   revision, decide revision.
-- `components/*` — `UploadForm` (start a run), `SegmentationEditor` (fix, merge, reorder or clear bullets before
-  scoring), `BulletWorkbench` (triage groups, questions, diff, decisions, copy).
+- `components/*` — `UploadForm` (start a run), `RunNotes` (the candidate's notes a draft is built from),
+  `SegmentationEditor` (fix, merge, reorder or clear bullets before scoring), `BulletWorkbench` (triage groups,
+  questions, diff, decisions, copy).
 - `app/page.tsx` — run list; `app/runs/[id]/page.tsx` — run detail.
 
 ## Data model

@@ -48,6 +48,10 @@ _Avoid_: needsMoreContext, low context, weak bullet, vague
 
 ## Authoring
 
+**Candidate Notes**:
+Everything the candidate has already written about their own work, pasted once per run. Notes are raw material a Story can be drafted from; they are never something the candidate asserted about one bullet.
+_Avoid_: narrative, bio, summary, story library
+
 **Story**:
 The candidate's own unstructured answer to a question the tool asked about one bullet — the raw material for a rewrite.
 _Avoid_: answer, note, context, input

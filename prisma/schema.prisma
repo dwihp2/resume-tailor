@@ -84,6 +84,9 @@ model TailoringRun {
   jobDescriptionId String             @map("job_description_id") @db.Uuid
   jobDescription   JobDescription     @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
   createdAt        DateTime           @default(now()) @map("created_at")
+  /// The candidate's own notes, pasted once per run: raw material for drafting
+  /// a Story answer instead of retyping facts already written down.
+  notes            String?
   evaluations      BulletEvaluation[]
 
   @@map("tailoring_runs")

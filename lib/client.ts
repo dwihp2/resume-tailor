@@ -1,6 +1,6 @@
 /** Thin client helpers. Every failure surfaces the server's message verbatim. */
-async function unwrap(response: Response) {
-  const payload = (await response.json().catch(() => ({}))) as { error?: string; issues?: string[] };
+async function unwrap<T>(response: Response): Promise<T> {
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: string; issues?: string[] };
   if (!response.ok) {
     const detail = payload.issues?.length ? `: ${payload.issues.join(", ")}` : "";
     throw new Error(`${payload.error ?? `Request failed (${response.status})`}${detail}`);
@@ -8,8 +8,8 @@ async function unwrap(response: Response) {
   return payload;
 }
 
-export async function postJson(url: string, body: unknown) {
-  return unwrap(
+export async function postJson<T = unknown>(url: string, body: unknown): Promise<T> {
+  return unwrap<T>(
     await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -18,16 +18,16 @@ export async function postJson(url: string, body: unknown) {
   );
 }
 
-export async function postForm(url: string, form: FormData) {
-  return unwrap(await fetch(url, { method: "POST", body: form }));
+export async function postForm<T = unknown>(url: string, form: FormData): Promise<T> {
+  return unwrap<T>(await fetch(url, { method: "POST", body: form }));
 }
 
-export async function postEmpty(url: string) {
-  return unwrap(await fetch(url, { method: "POST" }));
+export async function postEmpty<T = unknown>(url: string): Promise<T> {
+  return unwrap<T>(await fetch(url, { method: "POST" }));
 }
 
-export async function patchJson(url: string, body: unknown) {
-  return unwrap(
+export async function patchJson<T = unknown>(url: string, body: unknown): Promise<T> {
+  return unwrap<T>(
     await fetch(url, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -36,6 +36,6 @@ export async function patchJson(url: string, body: unknown) {
   );
 }
 
-export async function deleteJson(url: string) {
-  return unwrap(await fetch(url, { method: "DELETE" }));
+export async function deleteJson<T = unknown>(url: string): Promise<T> {
+  return unwrap<T>(await fetch(url, { method: "DELETE" }));
 }

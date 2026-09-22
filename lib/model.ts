@@ -1,16 +1,20 @@
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { generateObject } from "ai";
 import {
+  answerDraftPrompt,
   bulletFeaturesPrompt,
   jdRequirementsPrompt,
+  NOT_IN_NOTES,
   revisionPrompt,
   storyFactsPrompt,
 } from "./prompts";
 import {
+  answerDraftSchema,
   bulletFeaturesSchema,
   jdRequirementsSchema,
   revisionSchema,
   storyFactsSchema,
+  type AnswerDraft,
   type BulletFeatures,
   type JdRequirements,
   type RevisionResult,
@@ -24,8 +28,14 @@ export type RevisionInput = {
   storyFacts: string[];
 };
 
+export type AnswerDraftInput = {
+  bullet: string;
+  question: string;
+  notes: string;
+};
+
 /**
- * The whole LLM surface of this application: four extractions and one
+ * The whole LLM surface of this application: five extractions and one
  * generation. Nothing else calls a model, and lib/score calls none at all.
  */
 export type ModelAdapter = {
@@ -33,6 +43,7 @@ export type ModelAdapter = {
   jdRequirements(jdText: string): Promise<JdRequirements>;
   bulletFeatures(bullet: string): Promise<BulletFeatures>;
   storyFacts(question: string, answer: string): Promise<StoryFacts>;
+  answerDraft(input: AnswerDraftInput): Promise<AnswerDraft>;
   revision(input: RevisionInput): Promise<RevisionResult>;
 };
 
@@ -91,6 +102,17 @@ const deepseekAdapter: ModelAdapter = {
       system: "You rewrite resume bullets using only the facts the candidate supplied.",
       prompt: revisionPrompt(input),
       temperature: 0.2,
+    });
+    return object;
+  },
+
+  async answerDraft(input) {
+    const { object } = await generateObject({
+      model: deepseekModel(),
+      schema: answerDraftSchema,
+      system: "You summarise a candidate's own notes. You never invent facts and you refuse when the notes are silent.",
+      prompt: answerDraftPrompt(input),
+      temperature: 0,
     });
     return object;
   },
@@ -198,6 +220,29 @@ const fakeAdapter: ModelAdapter = {
     return {
       bullet: facts ? `${base}, with ${facts}` : base,
       claimsUsed: input.storyFacts,
+    };
+  },
+
+  async answerDraft(input) {
+    const wanted = new Set(
+      [...words(input.bullet), ...words(input.question)].filter(
+        (word) => word.length > 4 && !STOPWORDS.has(word),
+      ),
+    );
+    const sentences = input.notes
+      .split(/[.!?]+|\n+/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean);
+    const scored = sentences
+      .map((sentence) => ({ sentence, hits: words(sentence).filter((word) => wanted.has(word)).length }))
+      .filter((entry) => entry.hits > 0)
+      .sort((a, b) => b.hits - a.hits);
+
+    if (scored.length === 0) return { answer: NOT_IN_NOTES, basedOn: [] };
+    const used = scored.slice(0, 2);
+    return {
+      answer: `${used.map((entry) => entry.sentence).join(". ")}.`,
+      basedOn: used.map((entry) => entry.sentence),
     };
   },
 };

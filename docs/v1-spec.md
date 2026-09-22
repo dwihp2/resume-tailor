@@ -14,6 +14,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 6. Accepted and edited text can be copied out — per bullet, and as one markdown block of every kept bullet.
 7. Re-scoring the same resume and JD reproduces the same Match Scores whenever Feature Extraction is identical, which the e2e run asserts against the offline model. With a live model, extraction can differ between runs; `scoring_version` and `inputs_hash` are stored per evaluation so a changed score is attributable to a changed extraction instead of being unexplainable.
 8. Editing a bullet that has already been scored marks its Match Score **stale**, and scoring again clears the mark: a score never silently outlives the text it was computed from.
+9. The candidate can paste their **notes** once per run, and any gap question can be **drafted from them**. A draft only fills the answer box: the candidate still saves the answer themselves, and it is that saved answer — never the notes — that the rewrite may use.
 
 Step 1 is not optional polish: PDF line wrapping routinely splits one bullet into fragments, and scoring fragments produces confident nonsense. Hand-fixing segmentation is what makes the rest of the loop trustworthy.
 
@@ -31,6 +32,8 @@ Step 1 is not optional polish: PDF line wrapping routinely splits one bullet int
 | 8 | Decide | `app/api` | accepted / edited / rejected on one Revision; a new row per regeneration |
 
 Stage 2 runs once per JD rather than once per bullet — it is both the cost fix and the reason scoring is reproducible.
+
+Between stages 6 and 7 the candidate may ask for a **draft** of their answer from their notes. The draft is never persisted: it lands in the answer box for the candidate to change or accept, so the Story stays something the candidate wrote.
 
 ## Data model (delta vs PRD §4)
 
@@ -53,7 +56,7 @@ Stage 2 runs once per JD rather than once per bullet — it is both the cost fix
 - `lib/pdf` — the only place that knows about PDF internals.
 - `lib/parse` — pure text → bullets: segmentation, wrap re-joining, section tracking.
 - `lib/score` — pure scoring and the inputs hash; imports nothing that does IO.
-- `lib/model` — the entire LLM surface (four extractions, one generation), the offline stand-in, and the provider guard. There is no separate `lib/extract`: the adapter *is* the extraction boundary.
+- `lib/model` — the entire LLM surface (JD requirements, bullet features, story facts, answer draft, revision), the offline stand-in, and the provider guard. There is no separate `lib/extract`: the adapter *is* the extraction boundary.
 - `lib/generate` — revision generation plus the invented-number guard and its single retry.
 - `lib/prompts` — prompt text and versions, and the per-gap question wording.
 - `lib/diff` — pure word-level diff for the before/after view.
@@ -68,7 +71,7 @@ Stack as the PRD, minus Framer Motion (polish), TanStack Table (a plain sorted l
 
 Auth and the SaaS template · DOCX/PDF generation · voice storytelling · mock interview prep · aggregate skill-gap analysis · Master Resume and Resume Variants · Candidate Preferences · Story Library imports (e.g. seeding from an existing career narrative document) · Framer Motion · TanStack Table.
 
-**P1, cut first if the deadline bites:** one "experience narrative" textarea per run, appended to revision context.
+**P1 shipped:** the single notes textarea is in V1 as **Candidate Notes** — but it feeds a *drafted answer* the candidate saves, rather than being appended to the revision prompt (ADR-0005, and acceptance 9).
 
 ## Known V1 limitations
 

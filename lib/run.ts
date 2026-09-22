@@ -6,7 +6,7 @@ import { getModel } from "./model";
 import { extractPdfText } from "./pdf";
 import { segmentBullets } from "./parse";
 import { ensureOwner } from "./owner";
-import { PROMPT_VERSION, gapQuestion } from "./prompts";
+import { NOT_IN_NOTES, PROMPT_VERSION, gapQuestion } from "./prompts";
 import { scoreBullet, scoreInputsHash } from "./score";
 import { decisionSchema, jdRequirementsSchema } from "./schemas";
 import { z } from "zod";
@@ -40,6 +40,7 @@ export type RunBulletView = {
 export type RunView = {
   id: string;
   createdAt: string;
+  notes: string | null;
   resume: { id: string; title: string };
   job: {
     companyName: string | null;
@@ -140,6 +141,7 @@ export async function getRunView(runId: string): Promise<RunView | null> {
   return {
     id: run.id,
     createdAt: run.createdAt.toISOString(),
+    notes: run.notes,
     resume: { id: run.resume.id, title: run.resume.title },
     job: {
       companyName: run.jobDescription.companyName,
@@ -431,4 +433,50 @@ export async function dropSection(resumeId: string, section: string | null) {
   );
 
   return { removed: removed.count, remaining: remaining.length };
+}
+
+/**
+ * The candidate's notes are an input to the run, not a Story: raw material the
+ * candidate can draft an answer from. Nothing downstream treats them as
+ * something the candidate asserted about a specific bullet, which is what keeps
+ * the invented-number guard meaningful (ADR-0005).
+ */
+export async function saveNotes(runId: string, notes: string | null) {
+  const trimmed = notes?.trim() ?? "";
+  return prisma.tailoringRun.update({
+    where: { id: runId },
+    data: { notes: trimmed === "" ? null : trimmed },
+  });
+}
+
+export type AnswerDraftResult = {
+  answer: string | null;
+  basedOn: string[];
+  refused: boolean;
+};
+
+/**
+ * Drafts an answer from the candidate's notes. Nothing is stored: the candidate
+ * saves the answer themselves, so the Story stays their own statement.
+ */
+export async function draftAnswer(evaluationId: string): Promise<AnswerDraftResult> {
+  const evaluation = await prisma.bulletEvaluation.findUniqueOrThrow({
+    where: { id: evaluationId },
+    include: { bullet: true, run: true },
+  });
+  if (!evaluation.run.notes) {
+    throw new DomainError("Paste your notes on this run first — a draft is built from them.");
+  }
+  const draft = await getModel().answerDraft({
+    bullet: evaluation.bullet.text,
+    question: evaluation.question ?? "",
+    notes: evaluation.run.notes,
+  });
+
+  // The model is told to answer NOT IN NOTES rather than invent, so that
+  // sentinel must never reach the screen looking like an answer.
+  const refused = draft.answer.trim().toUpperCase().startsWith(NOT_IN_NOTES);
+  return refused
+    ? { answer: null, basedOn: [], refused: true }
+    : { answer: draft.answer, basedOn: draft.basedOn, refused: false };
 }

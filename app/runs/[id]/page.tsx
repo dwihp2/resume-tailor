@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BulletWorkbench } from "@/components/BulletWorkbench";
+import { RunNotes } from "@/components/RunNotes";
 import { SegmentationEditor } from "@/components/SegmentationEditor";
 import { getRunView } from "@/lib/run";
 
@@ -49,7 +50,9 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         </details>
       </header>
 
-      {scored ? <BulletWorkbench bullets={run.bullets} /> : null}
+      {scored ? <BulletWorkbench bullets={run.bullets} hasNotes={Boolean(run.notes)} /> : null}
+
+      <RunNotes runId={run.id} notes={run.notes} />
 
       <details
         open={!scored}

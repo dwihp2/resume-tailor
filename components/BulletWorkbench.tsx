@@ -61,9 +61,10 @@ function ScoreBadge({ score }: { score: number }) {
   return <span className={`rounded px-2 py-0.5 text-xs font-semibold ${tone}`}>{score}</span>;
 }
 
-function BulletCard({ bullet }: { bullet: RunBulletView }) {
+function BulletCard({ bullet, hasNotes }: { bullet: RunBulletView; hasNotes: boolean }) {
   const router = useRouter();
   const [answer, setAnswer] = useState("");
+  const [draftNote, setDraftNote] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -149,6 +150,28 @@ function BulletCard({ bullet }: { bullet: RunBulletView }) {
           />
           <div className="flex flex-wrap items-center gap-2">
             <button
+              data-testid="draft-answer"
+              type="button"
+              disabled={busy || !hasNotes || !bullet.evaluationId}
+              title={hasNotes ? undefined : "Paste your notes on this run first"}
+              onClick={() =>
+                run(async () => {
+                  const draft = await postEmpty<{ answer: string | null; basedOn: string[]; refused: boolean }>(
+                    `/api/evaluations/${bullet.evaluationId}/draft`,
+                  );
+                  if (draft.refused || draft.answer === null) {
+                    setDraftNote("Your notes say nothing about this bullet — answer it yourself.");
+                    return;
+                  }
+                  setAnswer(draft.answer);
+                  setDraftNote(`From your notes: ${draft.basedOn.join(" / ")}`);
+                })
+              }
+              className="rounded border border-neutral-700 px-3 py-1 text-xs disabled:opacity-40"
+            >
+              Draft from my notes
+            </button>
+            <button
               data-testid="save-story"
               type="button"
               disabled={busy || answer.trim().length < 3 || !bullet.evaluationId}
@@ -156,6 +179,7 @@ function BulletCard({ bullet }: { bullet: RunBulletView }) {
                 run(async () => {
                   await postJson(`/api/evaluations/${bullet.evaluationId}/story`, { answer });
                   setAnswer("");
+                  setDraftNote(null);
                 })
               }
               className="rounded border border-neutral-700 px-3 py-1 text-xs disabled:opacity-40"
@@ -172,6 +196,11 @@ function BulletCard({ bullet }: { bullet: RunBulletView }) {
               Write the rewrite
             </button>
           </div>
+          {draftNote ? (
+            <p data-testid="draft-source" className="text-xs text-neutral-500">
+              {draftNote}
+            </p>
+          ) : null}
           {bullet.stories.length > 0 ? (
             <ul data-testid="story-facts" className="space-y-1 text-xs text-neutral-400">
               {bullet.stories.map((story) => (
@@ -323,7 +352,7 @@ function matchesFocus(bullet: RunBulletView, focus: Focus): boolean {
   }
 }
 
-export function BulletWorkbench({ bullets }: { bullets: RunBulletView[] }) {
+export function BulletWorkbench({ bullets, hasNotes }: { bullets: RunBulletView[]; hasNotes: boolean }) {
   const [copiedAll, setCopiedAll] = useState(false);
   const [focus, setFocus] = useState<Focus>("all");
 
@@ -392,7 +421,7 @@ export function BulletWorkbench({ bullets }: { bullets: RunBulletView[] }) {
       ) : (
         <ul data-testid="scored-list" className="space-y-3">
           {visible.map((bullet) => (
-            <BulletCard key={bullet.id} bullet={bullet} />
+            <BulletCard key={bullet.id} bullet={bullet} hasNotes={hasNotes} />
           ))}
         </ul>
       )}

@@ -75,6 +75,31 @@ ${input.storyFacts.join("\n") || "(none stated)"}
 Target role: ${input.jobTitleHint}`;
 }
 
+/** The model's way of saying the notes do not cover this bullet. */
+export const NOT_IN_NOTES = "NOT IN NOTES";
+
+export function answerDraftPrompt(input: { bullet: string; question: string; notes: string }): string {
+  return `Draft an answer the candidate could give about one resume bullet, using only what they already wrote down.
+
+Rules:
+- Use only facts stated in the notes. Never add a number, tool or outcome of your own.
+- If the notes cover several employers or projects, use only the part that concerns this bullet. Never move a result from one employer to another.
+- Write in the first person, as the candidate, in plain prose, two sentences at most.
+- If the notes say nothing that answers the question about this bullet, reply with exactly: ${NOT_IN_NOTES}
+
+The bullet in question:
+"""
+${input.bullet}
+"""
+
+The question the candidate was asked: ${input.question}
+
+The candidate's notes:
+"""
+${input.notes}
+"""`;
+}
+
 /**
  * The question asked about one bullet. Which gap a bullet carries decides the
  * question, because a bullet that is off-topic needs a different answer than a

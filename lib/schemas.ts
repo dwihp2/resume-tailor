@@ -56,5 +56,18 @@ export const revisionSchema = z.object({
 
 export type RevisionResult = z.infer<typeof revisionSchema>;
 
+/**
+ * A draft answer built from the candidate's own notes. Never stored as a Story
+ * until the candidate saves it themselves, so the record stays theirs.
+ */
+export const answerDraftSchema = z.object({
+  answer: z
+    .string()
+    .describe(`A first-person answer to the question, or exactly NOT IN NOTES when the notes do not cover it`),
+  basedOn: z.array(z.string()).describe("Short quotes from the notes this draft used"),
+});
+
+export type AnswerDraft = z.infer<typeof answerDraftSchema>;
+
 export const decisionSchema = z.enum(["accepted", "edited", "rejected"]);
 export type Decision = z.infer<typeof decisionSchema>;
