@@ -60,6 +60,9 @@ npx playwright install chromium
 npm run test:e2e        # npx playwright test
 ```
 
+Playwright starts the app itself with `LLM_PROVIDER=fake`; stop a running `npm run dev` first, otherwise the suite
+reuses that server and fails fast on its model guard instead of spending real credits.
+
 `tests/smoke.spec.ts` uploads a generated PDF fixture, checks that every line is segmented (including lines with
 no bullet glyph), scores all 8 bullets, and asserts they render worst-first with an overlap gap and a question on
 the weakest one. `tests/segmentation.spec.ts` covers the editor that runs before scoring: edit, merge, reorder,
