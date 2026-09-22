@@ -8,6 +8,8 @@ import { buildResumePdf } from "./fixtures/resume-pdf.mjs";
  */
 test("edits, merges, reorders, drops and adds bullets before scoring", async ({ page }) => {
   await page.goto("/");
+  // Same guard as the other specs: never run the browser suite against a live model.
+  await expect(page.getByTestId("model-label")).toContainText("offline stand-in");
   await page.setInputFiles('[data-testid="resume-file"]', {
     name: "resume.pdf",
     mimeType: "application/pdf",

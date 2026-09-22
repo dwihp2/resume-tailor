@@ -64,7 +64,8 @@ npm run test:e2e        # npx playwright test
 no bullet glyph), scores all 8 bullets, and asserts they render worst-first with an overlap gap and a question on
 the weakest one. `tests/segmentation.spec.ts` covers the editor that runs before scoring: edit, merge, reorder,
 drop and add, it checks that only the surviving bullets get scored, and it checks that editing a scored bullet
-marks that score stale until the run is scored again. `tests/loop.spec.ts` drives the full loop
+marks that score stale until the run is scored again. `tests/focus.spec.ts` checks the triage groups (All /
+Worth fixing / Off target / Already quantified) and that their counts account for every bullet. `tests/loop.spec.ts` drives the full loop
 in the browser: answer a question, generate a revision, accept it and copy it out, reject and regenerate without
 losing the earlier revision, edit a revision and keep the edited wording, and confirm re-scoring the same inputs
 yields identical scores. Playwright runs the app with `LLM_PROVIDER=fake`, so the e2e suite needs no API key and

@@ -299,16 +299,47 @@ function BulletCard({ bullet }: { bullet: RunBulletView }) {
   );
 }
 
+type Focus = "all" | "worth-fixing" | "off-target" | "quantified";
+
+const FOCUS_LABELS: Record<Focus, string> = {
+  all: "All",
+  "worth-fixing": "Worth fixing",
+  "off-target": "Off target",
+  quantified: "Already quantified",
+};
+
+function matchesFocus(bullet: RunBulletView, focus: Focus): boolean {
+  switch (focus) {
+    case "worth-fixing":
+      // Names this job's stack but states no result: the one case where a
+      // question buys the most, because the bullet already belongs here.
+      return !bullet.overlapGap && bullet.evidenceGap;
+    case "off-target":
+      return bullet.overlapGap;
+    case "quantified":
+      return !bullet.evidenceGap;
+    case "all":
+      return true;
+  }
+}
+
 export function BulletWorkbench({ bullets }: { bullets: RunBulletView[] }) {
   const [copiedAll, setCopiedAll] = useState(false);
+  const [focus, setFocus] = useState<Focus>("all");
 
   // Worst first: the bullets that need attention are the ones worth reading.
-  const ordered = bullets
+  const scored = bullets
     .filter((bullet) => bullet.score !== null)
     .sort((a, b) => (a.score ?? 0) - (b.score ?? 0) || a.displayOrder - b.displayOrder);
 
-  const kept = ordered.map(keptText).filter((text): text is string => Boolean(text));
+  const visible = scored.filter((bullet) => matchesFocus(bullet, focus));
+  const kept = scored.map(keptText).filter((text): text is string => Boolean(text));
   const markdown = kept.map((text) => `- ${text}`).join("\n");
+  const groups = (Object.keys(FOCUS_LABELS) as Focus[]).map((key) => ({
+    key,
+    label: FOCUS_LABELS[key],
+    count: scored.filter((bullet) => matchesFocus(bullet, key)).length,
+  }));
 
   return (
     <section className="space-y-3">
@@ -331,11 +362,40 @@ export function BulletWorkbench({ bullets }: { bullets: RunBulletView[] }) {
           ) : null}
         </div>
       </div>
-      <ul data-testid="scored-list" className="space-y-3">
-        {ordered.map((bullet) => (
-          <BulletCard key={bullet.id} bullet={bullet} />
+
+      <div data-testid="focus-filters" className="flex flex-wrap gap-2 text-xs">
+        {groups.map(({ key, label, count }) => (
+          <button
+            key={key}
+            data-testid={`focus-${key}`}
+            type="button"
+            aria-pressed={focus === key}
+            onClick={() => setFocus(key)}
+            className={
+              focus === key
+                ? "rounded bg-neutral-100 px-2 py-1 font-medium text-neutral-900"
+                : "rounded border border-neutral-700 px-2 py-1 text-neutral-300"
+            }
+          >
+            {label} ({count})
+          </button>
         ))}
-      </ul>
+      </div>
+
+      {visible.length === 0 ? (
+        <p
+          data-testid="focus-empty"
+          className="rounded border border-dashed border-neutral-800 px-4 py-6 text-sm text-neutral-500"
+        >
+          Nothing in this group.
+        </p>
+      ) : (
+        <ul data-testid="scored-list" className="space-y-3">
+          {visible.map((bullet) => (
+            <BulletCard key={bullet.id} bullet={bullet} />
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

@@ -15,6 +15,9 @@ const RESPONSE = {
 
 async function startRun(page: Page) {
   await page.goto("/");
+  // Deterministic by construction: these specs only hold against the offline
+  // stand-in, and a live model would burn credits and shift the scores.
+  await expect(page.getByTestId("model-label")).toContainText("offline stand-in");
   await page.setInputFiles('[data-testid="resume-file"]', {
     name: "resume.pdf",
     mimeType: "application/pdf",
