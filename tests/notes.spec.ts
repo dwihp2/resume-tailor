@@ -24,7 +24,7 @@ test("drafts an answer from the candidate's notes and refuses when they are sile
   const evaluated = page.waitForResponse((response) => response.url().includes("/evaluate"));
   await page.click('[data-testid="score-bullets"]');
   expect((await evaluated).ok()).toBeTruthy();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(8);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(6);
 
   const covered = page.getByTestId("bullet-card").filter({ hasText: "accounting module" });
   const uncovered = page.getByTestId("bullet-card").filter({ hasText: "Muhammad Example" });

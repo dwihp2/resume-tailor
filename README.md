@@ -102,7 +102,8 @@ reproducible.
 
 Module map:
 
-- `lib/parse` — PDF text, bullet segmentation, normalization.
+- `lib/parse` — pure text → bullets: one bullet per entry (a job with its details, a school, a whole list
+  section), wrap re-joining, canonical section names.
 - `lib/pdf` — PDF → plain text via `unpdf`; the only code that knows PDF internals.
 - `lib/score` — pure scoring and input hashing; imports nothing that does IO.
 - `lib/model` — the whole LLM surface (JD requirements, bullet features, story facts, answer draft, revision) plus the fake adapter and the model label.

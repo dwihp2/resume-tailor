@@ -12,6 +12,8 @@ export const RESUME_LINES = [
   "- Built an accounting module that cut manual payment work by 20%",
   "- Integrated VoIP calling into the internal tools dashboard using Sendbird",
   "- Added Google Maps tracking for driver oversight",
+  "Geniebook - Frontend Engineer",
+  "- Launched AI marking and commenting features providing feedback in 32 seconds",
   "PROJECTS",
   "- Rebuilt the reporting dashboard in React and TypeScript backed by PostgreSQL through Prisma, cutting report load time by 32 seconds for a team of 4",
   "EDUCATION",

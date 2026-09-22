@@ -31,7 +31,7 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
         (node as HTMLDetailsElement).open = true;
       });
 
-  await expect(rows).toHaveCount(8);
+  await expect(rows).toHaveCount(6);
 
   // Edit: the header line the extractor read as a bullet becomes a real headline.
   await expect(page.getByTestId("save-bullet").first()).toBeDisabled();
@@ -39,27 +39,26 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   const edited = settle();
   await page.getByTestId("save-bullet").first().click();
   expect((await edited).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(8);
   await expect(inputs.first()).toHaveValue("Muhammad Example — Senior Fullstack Engineer");
 
-  // Merge: a bullet the PDF split across two lines becomes one scoreable row.
+  // Merge: a line that ended up as its own entry joins the one above it.
   const merged = settle();
-  await page.getByTestId("merge-bullet").nth(4).click();
+  await page.getByTestId("merge-bullet").nth(5).click();
   expect((await merged).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(7);
-  await expect(inputs.nth(3)).toHaveValue(/accounting module .*VoIP calling/);
+  await expect(rows).toHaveCount(5);
+  await expect(inputs.nth(4)).toHaveValue(/Rebuilt the reporting dashboard .*BSc Computer Science/);
 
-  // Reorder: the merged row moves above the one before it.
+  // Reorder: the merged row moves above the row before it.
   const moved = settle();
-  await page.getByTestId("move-up").nth(3).click();
+  await page.getByTestId("move-up").nth(4).click();
   expect((await moved).ok()).toBeTruthy();
-  await expect(inputs.nth(2)).toHaveValue(/accounting module .*VoIP calling/);
+  await expect(inputs.nth(3)).toHaveValue(/Rebuilt the reporting dashboard/);
 
   // Drop: a line that is not an achievement leaves the resume.
   const dropped = settle();
   await page.getByTestId("drop-bullet").first().click();
   expect((await dropped).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(6);
+  await expect(rows).toHaveCount(4);
   await expect(inputs.first()).toHaveValue(/Frontend engineer with six years/);
 
   // Add: text the extractor lost entirely can be restored by hand.
@@ -67,14 +66,14 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   const added = settle();
   await page.getByTestId("add-bullet").click();
   expect((await added).ok()).toBeTruthy();
-  await expect(rows).toHaveCount(7);
+  await expect(rows).toHaveCount(5);
   await expect(inputs.last()).toHaveValue("Led the migration off the legacy .NET tools");
 
   // Only what survived the editor gets scored.
   const evaluated = page.waitForResponse((response) => response.url().includes("/evaluate"));
   await page.getByTestId("score-bullets").click();
   expect((await evaluated).ok()).toBeTruthy();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(7);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(5);
   await expect(page.getByTestId("stale-score")).toHaveCount(0);
 
   // Editing a scored bullet flags the old score rather than quietly reusing it.
@@ -96,11 +95,11 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   await expect(page.getByTestId("stale-score")).toHaveCount(0);
   await expect(page.getByTestId("stale-question-notice")).toHaveCount(0);
   await expect(page.getByTestId("bullet-question").first()).toBeVisible();
-  await expect(page.getByTestId("progress")).toContainText("7 scored");
+  await expect(page.getByTestId("progress")).toContainText("5 scored");
 
   // The run list is the way back in, and it reports the same counts.
   await page.click("text=← All runs");
   const entry = page.getByTestId("run-list").locator("li").first();
   await expect(entry).toContainText("resume.pdf");
-  await expect(entry).toContainText("7 scored");
+  await expect(entry).toContainText("5 scored");
 });

@@ -27,10 +27,10 @@ async function startRun(page: Page) {
   await page.click('[data-testid="submit-run"]');
   await page.waitForURL(/\/runs\/[0-9a-f-]+$/);
 
-  const evaluated = page.waitForResponse((response) => RESPONSE.evaluate.test(response.url()));
+  const evaluate = page.waitForResponse((response) => RESPONSE.evaluate.test(response.url()));
   await page.click('[data-testid="score-bullets"]');
-  expect((await evaluated).ok()).toBeTruthy();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(8);
+  expect((await evaluate).ok()).toBeTruthy();
+  await expect(page.getByTestId("bullet-card")).toHaveCount(6);
 }
 
 test("turns an unanswered weak bullet into an accepted rewrite, then rejects and retries", async ({ page }) => {
@@ -104,13 +104,13 @@ test("re-scoring the same resume and job description reproduces the same scores"
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-score")));
 
   const before = await scores();
-  expect(before).toHaveLength(8);
+  expect(before).toHaveLength(6);
 
   await page.getByText("Segmentation", { exact: false }).click();
   const evaluate = page.waitForResponse((response) => RESPONSE.evaluate.test(response.url()));
   await page.click('[data-testid="score-bullets"]');
   expect((await evaluate).ok()).toBeTruthy();
 
-  await expect(page.getByTestId("progress")).toContainText("8 scored");
+  await expect(page.getByTestId("progress")).toContainText("6 scored");
   expect(await scores()).toEqual(before);
 });

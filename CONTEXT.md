@@ -9,8 +9,8 @@ A PDF the candidate uploads for one tailoring run. In V1 a resume exists only as
 _Avoid_: CV, master resume, resume variant
 
 **Bullet**:
-One line item of a resume, as segmented from the uploaded document; the unit that is scored, questioned, and rewritten.
-_Avoid_: item, entry, point, achievement
+The unit that is scored, questioned and rewritten: one resume entry — a job with its dates, employer and responsibilities, or a school, or the whole of a list section such as Skills. A line or a sentence is not a Bullet; extraction drops bullet glyphs and wraps prose, so a line is an unreliable unit (ADR-0006).
+_Avoid_: line, sentence, row, fragment
 
 **Section**:
 The heading a Bullet was found under (Experience, Skills, Education). A bullet that appeared before any heading has no Section, and bullet-dropping treats that as a group of its own.

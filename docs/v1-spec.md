@@ -6,7 +6,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 
 ## Acceptance
 
-1. Upload a resume PDF, paste a JD, and the tool segments the resume into bullets the user can **edit, merge, drop, reorder, or add to before scoring**, and can clear a whole noisy section (a skill list, a contact block) in one confirmed action.
+1. Upload a resume PDF, paste a JD, and the tool segments the resume into bullets the user can **edit, merge, drop, reorder, or add to before scoring**, and can clear a whole noisy section (a skill list, a contact block) in one confirmed action. A bullet is an **entry**, not a line: a job arrives with its dates, employer and responsibilities together, a school arrives whole, and a Skills or Languages section arrives as one bullet (ADR-0006).
 2. Every bullet gets a Match Score with the matched terms that justify it, listed worst-first, and groupable into All / Worth fixing (names the job's stack but states no result) / Overlap gap / Already quantified.
 3. Bullets carrying an Overlap Gap or an Evidence Gap get one question each, worded per gap type; answering stores a Story and its Story Facts.
 4. A Revision is generated from the bullet plus its Story Facts, shown as a before/after diff, and can be accepted, edited, or rejected.
@@ -23,7 +23,7 @@ Step 1 is not optional polish: PDF line wrapping routinely splits one bullet int
 
 | # | Stage | Where | Contract |
 |---|---|---|---|
-| 1 | Extract + segment | `lib/pdf` → `lib/parse` | PDF → text → bullets with section label and display order. Pure except for the PDF read |
+| 1 | Extract + segment | `lib/pdf` → `lib/parse` | PDF → text → bullets with section label and display order, **one bullet per entry** (a job with its details, a school, or a whole list section). Pure except for the PDF read |
 | 2 | JD Requirements | `lib/model` | LLM + Zod, **once per JD**: skills, tools, domain terms, seniority signals |
 | 3 | Feature Extraction | `lib/model` | LLM + Zod, **per bullet**: skills, tools, action, `hasMetric`, metric, scope |
 | 4 | Score | `lib/score` | Pure function, no IO: weighted overlap with JD Requirements + evidence bonus, plus per-gap flags |

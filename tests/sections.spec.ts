@@ -21,21 +21,21 @@ test("clears a whole noisy section in one confirmed action", async ({ page, requ
 
   const rows = page.getByTestId("segmentation-row");
   const tools = page.getByTestId("section-tools");
-  await expect(rows).toHaveCount(8);
+  await expect(rows).toHaveCount(6);
 
-  // The fixture's Experience section holds four of the eight bullets; every
-  // other section holds one, which the per-row Drop button already covers.
-  await expect(tools).toContainText("Experience (4)");
+  // The fixture has two jobs in Experience; every other section holds one
+  // bullet, which the per-row Drop button already covers.
+  await expect(tools).toContainText("Experience (2)");
   await expect(tools).not.toContainText("Summary");
   await expect(tools).not.toContainText("No section");
 
-  // Two steps, because there is no undo for four bullets.
+  // Two steps, because there is no undo for two bullets.
   await page.getByTestId("drop-section-Experience").click();
   const confirmed = page.waitForResponse((response) => response.url().includes("/drop-section"));
   await page.getByTestId("confirm-drop-section-Experience").click();
   const response = await confirmed;
   expect(response.ok()).toBeTruthy();
-  expect((await response.json()).removed).toBe(4);
+  expect((await response.json()).removed).toBe(2);
 
   await expect(rows).toHaveCount(4);
   await expect(tools).toHaveCount(0);

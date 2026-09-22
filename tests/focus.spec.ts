@@ -23,19 +23,19 @@ test("groups scored bullets so the highest-leverage ones are findable", async ({
   expect((await evaluated).ok()).toBeTruthy();
 
   // Every bullet is in exactly one place, and the counts say so.
-  await expect(page.getByTestId("bullet-card")).toHaveCount(8);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(6);
   const chips = page.getByTestId("focus-filters");
-  await expect(chips).toContainText("All (8)");
-  await expect(chips).toContainText("Overlap gap (7)");
-  await expect(chips).toContainText("Already quantified (2)");
+  await expect(chips).toContainText("All (6)");
+  await expect(chips).toContainText("Overlap gap (5)");
+  await expect(chips).toContainText("Already quantified (3)");
   await expect(chips).toContainText("Worth fixing (0)");
 
   await page.getByTestId("focus-off-target").click();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(7);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(5);
   await expect(page.getByTestId("overlap-gap").first()).toBeVisible();
 
   await page.getByTestId("focus-quantified").click();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(2);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(3);
   await expect(page.getByTestId("evidence-gap")).toHaveCount(0);
 
   // This fixture has nothing in the middle group; say so instead of showing a blank.
@@ -44,5 +44,5 @@ test("groups scored bullets so the highest-leverage ones are findable", async ({
   await expect(page.getByTestId("focus-empty")).toBeVisible();
 
   await page.getByTestId("focus-all").click();
-  await expect(page.getByTestId("bullet-card")).toHaveCount(8);
+  await expect(page.getByTestId("bullet-card")).toHaveCount(6);
 });
