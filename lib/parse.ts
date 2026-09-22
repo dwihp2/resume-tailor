@@ -37,12 +37,27 @@ const SECTION_NAMES = [
   "interests",
 ];
 
-function isSectionHeading(line: string): boolean {
-  const cleaned = line.replace(/[:#]+$/, "").trim().toLowerCase();
-  if (!cleaned || cleaned.length > 48) return false;
-  if (SECTION_NAMES.includes(cleaned)) return true;
-  // ALL CAPS headings ("EXPERIENCE"), but not a one-word all-caps bullet.
-  return line.trim().length <= 32 && /^[A-Z][A-Z\s&/]{3,}$/.test(line.trim());
+const CANONICAL_BY_KEY = new Map(
+  SECTION_NAMES.map((name) => [name.replace(/\s+/g, ""), name.split(" ").map((word) => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")]),
+);
+
+/**
+ * Returns the label to use for a heading line, or null when the line is not a
+ * heading. PDF extraction inserts spaces inside words often enough that
+ * headings arrive as "SUMM ARY" and "L ANGUAGES", so an all-caps line is
+ * matched with its spaces removed and reported under a canonical label —
+ * grouping every run under the same names also keeps the prompts stable.
+ */
+function headingLabel(line: string): string | null {
+  const cleaned = line.replace(/[:#]+$/, "").trim();
+  if (!cleaned) return null;
+
+  const direct = CANONICAL_BY_KEY.get(cleaned.toLowerCase().replace(/\s+/g, ""));
+  if (SECTION_NAMES.includes(cleaned.toLowerCase())) return direct ?? cleaned;
+
+  const isAllCaps = cleaned.length <= 32 && /^[A-Z][A-Z\s&/]{3,}$/.test(cleaned);
+  if (!isAllCaps) return null;
+  return direct ?? cleaned;
 }
 
 function looksLikeListLine(line: string): boolean {
@@ -84,8 +99,9 @@ export function segmentBullets(rawText: string): ParsedBullet[] {
   let section: string | null = null;
 
   for (const line of lines) {
-    if (isSectionHeading(line)) {
-      section = line.replace(/[:#]+$/, "").trim();
+    const heading = headingLabel(line);
+    if (heading) {
+      section = heading;
       continue;
     }
 

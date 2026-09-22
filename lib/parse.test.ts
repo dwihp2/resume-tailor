@@ -18,10 +18,10 @@ Rushowl — Frontend Engineer
       "Integrated VoIP calling into the internal tools dashboard",
     ]);
     expect(bullets.map((bullet) => bullet.section)).toEqual([
-      "SUMMARY",
-      "EXPERIENCE",
-      "EXPERIENCE",
-      "EXPERIENCE",
+      "Summary",
+      "Experience",
+      "Experience",
+      "Experience",
     ]);
     expect(bullets.map((bullet) => bullet.order)).toEqual([0, 1, 2, 3]);
   });
@@ -49,7 +49,7 @@ Wrote table-driven tests for the pricing rules
       "Designed a reservation service handling concurrent bookings",
       "Wrote table-driven tests for the pricing rules",
     ]);
-    expect(bullets.every((bullet) => bullet.section === "PROJECTS")).toBe(true);
+    expect(bullets.every((bullet) => bullet.section === "Projects")).toBe(true);
   });
 
   it("keeps a document with no recognisable sections usable", () => {
@@ -64,5 +64,18 @@ Wrote table-driven tests for the pricing rules
 Built the payments dashboard
 `);
     expect(bullets.map((bullet) => bullet.text)).toEqual(["Built the payments dashboard"]);
+  });
+
+  it("canonicalises a heading the extractor split inside a word", () => {
+    const bullets = segmentBullets(`SUMM ARY
+Frontend engineer with six years of experience.
+L ANGUAGES
+English, Indonesian
+`);
+    expect(bullets.map((bullet) => bullet.section)).toEqual(["Summary", "Languages"]);
+    expect(bullets.map((bullet) => bullet.text)).toEqual([
+      "Frontend engineer with six years of experience.",
+      "English, Indonesian",
+    ]);
   });
 });
