@@ -12,6 +12,10 @@ _Avoid_: CV, master resume, resume variant
 One line item of a resume, as segmented from the uploaded document; the unit that is scored, questioned, and rewritten.
 _Avoid_: item, entry, point, achievement
 
+**Section**:
+The heading a Bullet was found under (Experience, Skills, Education). A bullet that appeared before any heading has no Section, and bullet-dropping treats that as a group of its own.
+_Avoid_: category, group, block, part
+
 **Job Description (JD)**:
 The pasted plain text of a single job posting; what a resume is tailored to.
 _Avoid_: job posting, vacancy, role spec

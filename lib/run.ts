@@ -409,3 +409,26 @@ export async function moveBullet(bulletId: string, delta: number) {
   ]);
   return { moved: true };
 }
+
+/**
+ * Drops every bullet in one section — a skill list or a contact block arrives
+ * as a dozen rows that will never be scored well, and removing them one by one
+ * is the difference between starting the loop and giving up. `section: null`
+ * targets the bullets that never got a heading.
+ */
+export async function dropSection(resumeId: string, section: string | null) {
+  const removed = await prisma.resumeBullet.deleteMany({ where: { resumeId, section } });
+
+  const remaining = await prisma.resumeBullet.findMany({
+    where: { resumeId },
+    orderBy: { displayOrder: "asc" },
+    select: { id: true },
+  });
+  await prisma.$transaction(
+    remaining.map((bullet, index) =>
+      prisma.resumeBullet.update({ where: { id: bullet.id }, data: { displayOrder: index } }),
+    ),
+  );
+
+  return { removed: removed.count, remaining: remaining.length };
+}

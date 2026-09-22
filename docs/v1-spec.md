@@ -6,7 +6,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 
 ## Acceptance
 
-1. Upload a resume PDF, paste a JD, and the tool segments the resume into bullets the user can **edit, merge, drop, reorder, or add to before scoring**.
+1. Upload a resume PDF, paste a JD, and the tool segments the resume into bullets the user can **edit, merge, drop, reorder, or add to before scoring**, and can clear a whole noisy section (a skill list, a contact block) in one confirmed action.
 2. Every bullet gets a Match Score with the matched terms that justify it, listed worst-first, and groupable into All / Worth fixing (names the job's stack but states no result) / Off target / Already quantified.
 3. Bullets carrying an Overlap Gap or an Evidence Gap get one question each, worded per gap type; answering stores a Story and its Story Facts.
 4. A Revision is generated from the bullet plus its Story Facts, shown as a before/after diff, and can be accepted, edited, or rejected.
