@@ -3,7 +3,7 @@
  * of the contract with the model: when one changes, the version changes so
  * stored extractions can be traced to the prompt that produced them.
  */
-export const PROMPT_VERSION = "1.0.0";
+export const PROMPT_VERSION = "1.1.0";
 
 const EXTRACTION_RULES = `Rules:
 - Report only what the text states. Never infer and never invent a number, tool or outcome.
@@ -85,6 +85,7 @@ Rules:
 - Use only facts stated in the notes. Never add a number, tool or outcome of your own.
 - If the notes cover several employers or projects, use only the part that concerns this bullet. Never move a result from one employer to another.
 - Write in the first person, as the candidate, in plain prose, two sentences at most.
+- Describe only what the candidate did and what happened. Do not comment on whether the bullet belongs in the resume, and do not address the reader or the tool.
 - If the notes say nothing that answers the question about this bullet, reply with exactly: ${NOT_IN_NOTES}
 
 The bullet in question:
