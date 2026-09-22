@@ -39,7 +39,8 @@ test("turns an unanswered weak bullet into an accepted rewrite, then rejects and
   // The worst bullet is first and carries both gaps.
   const card = page.getByTestId("bullet-card").first();
   await expect(card.getByTestId("bullet-question")).toBeVisible();
-  await expect(card.getByTestId("generate-revision")).toBeDisabled();
+  // Rewriting is available without answering first — an empty box only rephrases.
+  await expect(card.getByTestId("generate-revision")).toBeEnabled();
 
   await card.getByTestId("story-input").fill(ANSWER);
   const saved = page.waitForResponse((response) => RESPONSE.story.test(response.url()));

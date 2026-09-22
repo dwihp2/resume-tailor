@@ -42,6 +42,10 @@ _Avoid_: relevance score, relevanceScore, rating, percentage match
 A bullet that names none of the job's skills or tools. Most bullets on a real resume have one — a resume states achievements while the stack usually lives in a single section — so an Overlap Gap is a signal to re-read the bullet against the job, never a verdict that it does not belong.
 _Avoid_: irrelevant, low relevance, mismatch, off target
 
+**Missing Term**:
+A skill or tool the JD asks for that a bullet does not reflect. It steers the question asked about that bullet and the rewrite it can produce — a rewrite may name one only when the candidate's own words show they used it on that work.
+_Avoid_: missing key, keyword, gap
+
 **Evidence Gap**:
 A bullet that carries no measured result; the condition that triggers a question to the candidate.
 _Avoid_: needsMoreContext, low context, weak bullet, vague

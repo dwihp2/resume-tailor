@@ -74,7 +74,8 @@ drop and add, it checks that only the surviving bullets get scored, and it check
 marks that score stale — and withdraws the question that belonged to the old text — until the run is scored again. `tests/focus.spec.ts` checks the triage groups (All /
 Worth fixing / Overlap gap / Already quantified) and that their counts account for every bullet. `tests/sections.spec.ts` clears a whole section in one confirmed action, including the
 bullets that never got a heading. `tests/notes.spec.ts` drafts an answer from the candidate's notes, saves it,
-rewrites from it, and checks that a bullet the notes do not cover is refused instead of invented. `tests/runs.spec.ts` deletes a run and checks the run, its resume and its job description are gone. `tests/loop.spec.ts` drives the full loop
+rewrites from it, and checks that a bullet the notes do not cover is refused instead of invented. `tests/rewrite.spec.ts` rewrites a bullet in one action: rephrasing when nothing was typed, and saving the typed
+answer before rewriting when there is one. `tests/runs.spec.ts` deletes a run and checks the run, its resume and its job description are gone. `tests/loop.spec.ts` drives the full loop
 in the browser: answer a question, generate a revision, accept it and copy it out, reject and regenerate without
 losing the earlier revision, edit a revision and keep the edited wording, and confirm re-scoring the same inputs
 yields identical scores. Playwright runs the app with `LLM_PROVIDER=fake`, so the e2e suite needs no API key and
@@ -108,7 +109,8 @@ Module map:
 - `lib/score` — pure scoring and input hashing; imports nothing that does IO.
 - `lib/model` — the whole LLM surface (JD requirements, bullet features, story facts, answer draft, revision) plus the fake adapter and the model label.
 - `lib/generate` — revision generation, including the check that rejects invented numbers.
-- `lib/prompts` — prompt text and versions, shared by the extraction and generation calls.
+- `lib/prompts` — prompt text and versions, the per-gap question wording, and the JD terms a rewrite may steer
+  toward (it may name one only when the candidate's own answer supports it).
 - `lib/run` — the run orchestration: create, segment, evaluate, story, revision, decision.
 - `lib/schemas`, `lib/diff`, `lib/api`, `lib/client`, `lib/db`, `lib/owner`, `lib/errors` — Zod schemas,
   word-level diff, HTTP helpers, Prisma client, and the single local owner.

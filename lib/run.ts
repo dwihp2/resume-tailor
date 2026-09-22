@@ -256,7 +256,8 @@ export async function evaluateRun(runId: string): Promise<{ scored: number }> {
           missingTerms: result.missing,
           overlapGap: result.overlapGap,
           evidenceGap: result.evidenceGap,
-          question: result.overlapGap || result.evidenceGap ? gapQuestion(result, bullet.text) : null,
+          question:
+            result.overlapGap || result.evidenceGap ? gapQuestion(result, bullet.text, result.missing) : null,
           scoringVersion: result.scoringVersion,
           inputsHash: scoreInputsHash(features, requirements),
         };
@@ -290,10 +291,9 @@ export async function createRevision(evaluationId: string) {
       run: { include: { jobDescription: true } },
     },
   });
-  if (evaluation.stories.length === 0) {
-    throw new DomainError("Answer the question about this bullet before asking for a rewrite.");
-  }
-
+  // A rewrite with no Story is allowed: the prompt then only sharpens the
+  // wording toward the job's language, and the invented-number guard still
+  // applies, so nothing can be fabricated into the gap.
   // Every answer the candidate gave counts, so a second answer adds facts
   // rather than replacing the first.
   const storyFacts = evaluation.stories.flatMap((story) => asFactValues(story.storyFacts));
@@ -303,6 +303,7 @@ export async function createRevision(evaluationId: string) {
     jobTitleHint: evaluation.run.jobDescription.roleTitle ?? "the target role",
     question: evaluation.question ?? "",
     storyFacts,
+    missingTerms: asStrings(evaluation.missingTerms),
   });
 
   return prisma.bulletRevision.create({

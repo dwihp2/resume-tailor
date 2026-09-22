@@ -16,6 +16,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 8. Editing a bullet that has already been scored marks its Match Score **stale** and withdraws the question that belonged to the old text; scoring again clears the mark and asks a question about the text you have now. A score never silently outlives the text it was computed from.
 9. The candidate can paste their **notes** once per run, and any gap question can be **drafted from them**. A draft only fills the answer box: the candidate still saves the answer themselves, and it is that saved answer — never the notes — that the rewrite may use.
 10. A run can be deleted from the run list, behind one confirmation. The resume, job description and every evaluation, story and revision it created are deleted with it.
+11. A gap question names the JD terms the bullet does not reflect (its Missing Terms), and **Rewrite with AI** is one action: whatever the candidate typed becomes the Story and the revision is produced from it; with an empty box the bullet is only rephrased toward the job's language, and no outcome is ever invented.
 
 Step 1 is not optional polish: PDF line wrapping routinely splits one bullet into fragments, and scoring fragments produces confident nonsense. Hand-fixing segmentation is what makes the rest of the loop trustworthy.
 
@@ -29,7 +30,7 @@ Step 1 is not optional polish: PDF line wrapping routinely splits one bullet int
 | 4 | Score | `lib/score` | Pure function, no IO: weighted overlap with JD Requirements + evidence bonus, plus per-gap flags |
 | 5 | Question | `lib/prompts` | Overlap Gap → "is this relevant to this JD, or should it be cut?" · Evidence Gap → "what was the measured result — latency, scale, throughput?" |
 | 6 | Story Facts | `lib/model` | LLM + Zod over the Story: metric, scale, tool, timeframe |
-| 7 | Revision | `lib/generate` | Bullet + Story Facts + JD Requirements → rewritten bullet, strict schema, then a guard: a number that appears in neither the bullet nor the Story Facts is rejected and retried once |
+| 7 | Revision | `lib/generate` | Bullet + Story Facts + JD Requirements → rewritten bullet, strict schema, steered by the JD terms the bullet is missing; then a guard: a number that appears in neither the bullet nor the Story Facts is rejected and retried once |
 | 8 | Decide | `app/api` | accepted / edited / rejected on one Revision; a new row per regeneration |
 
 Stage 2 runs once per JD rather than once per bullet — it is both the cost fix and the reason scoring is reproducible.

@@ -199,11 +199,23 @@ function BulletCard({ bullet, hasNotes }: { bullet: RunBulletView; hasNotes: boo
             <button
               data-testid="generate-revision"
               type="button"
-              disabled={busy || bullet.stories.length === 0 || !bullet.evaluationId}
-              onClick={() => run(() => postEmpty(`/api/evaluations/${bullet.evaluationId}/revision`))}
+              disabled={busy || !bullet.evaluationId}
+              onClick={() =>
+                run(async () => {
+                  // One action: whatever the candidate typed becomes the Story,
+                  // and the rewrite is produced from it. With an empty box the
+                  // bullet is only rephrased toward the job's language.
+                  if (answer.trim().length >= 3) {
+                    await postJson(`/api/evaluations/${bullet.evaluationId}/story`, { answer });
+                    setAnswer("");
+                  }
+                  await postEmpty(`/api/evaluations/${bullet.evaluationId}/revision`);
+                  setDraftNote(null);
+                })
+              }
               className="rounded bg-emerald-500 px-3 py-1 text-xs font-medium text-emerald-950 disabled:opacity-40"
             >
-              Write the rewrite
+              Rewrite with AI
             </button>
           </div>
           {draftNote ? (

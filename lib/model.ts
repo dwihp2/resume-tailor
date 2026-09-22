@@ -26,6 +26,8 @@ export type RevisionInput = {
   jobTitleHint: string;
   question: string;
   storyFacts: string[];
+  /** The job's terms this bullet does not reflect, for steering only. */
+  missingTerms: string[];
 };
 
 export type AnswerDraftInput = {
