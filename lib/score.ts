@@ -5,7 +5,7 @@ import type { BulletFeatures, JdRequirements } from "./schemas";
  * Bumped whenever weights or the normalisation rules change, so a stored score
  * can always be traced back to the function that produced it (ADR-0001).
  */
-export const SCORING_VERSION = "1.0.0";
+export const SCORING_VERSION = "1.1.0";
 
 export const SCORING_WEIGHTS = {
   coverage: 60,
@@ -47,21 +47,61 @@ function termSet(values: readonly string[]): string[] {
 }
 
 /**
+ * The same technology arrives under different names: a job asks for React and
+ * a resume says React Native, a job says PostgreSQL and a resume says Postgres.
+ * Exact string equality scored those as nothing, which on a real resume meant
+ * coverage contributed zero to every bullet.
+ */
+const ALIASES: Record<string, string> = {
+  postgres: "postgresql",
+  psql: "postgresql",
+  nodejs: "node.js",
+  node: "node.js",
+  reactjs: "react",
+  nextjs: "next.js",
+  ts: "typescript",
+  js: "javascript",
+  golang: "go",
+  k8s: "kubernetes",
+  gcp: "google cloud",
+  ml: "machine learning",
+};
+
+/** Below this length a term is too generic to match by containment ("go"). */
+const MIN_CONTAINMENT = 4;
+
+function canonicalTerm(term: string): string {
+  return ALIASES[term] ?? term;
+}
+
+export function termsMatch(left: string, right: string): boolean {
+  const a = canonicalTerm(left);
+  const b = canonicalTerm(right);
+  if (a === b) return true;
+
+  const aTokens = a.split(" ").filter(Boolean);
+  const bTokens = b.split(" ").filter(Boolean);
+  const [shorter, longer] = aTokens.length <= bTokens.length ? [aTokens, bTokens] : [bTokens, aTokens];
+  if (shorter.join(" ").length < MIN_CONTAINMENT) return false;
+  return shorter.every((token) => longer.includes(token));
+}
+
+/**
  * Pure function: same features plus same requirements always produce the same
  * result. No IO, no clock, no model call.
  */
 export function scoreBullet(features: BulletFeatures, requirements: JdRequirements): ScoreResult {
   const required = termSet([...requirements.skills, ...requirements.tools]);
   const owned = termSet([...features.skills, ...features.tools]);
-  const ownedSet = new Set(owned);
 
-  const matched = required.filter((term) => ownedSet.has(term));
-  const missing = required.filter((term) => !ownedSet.has(term));
+  const matches = (term: string) => owned.some((ownedTerm) => termsMatch(term, ownedTerm));
+  const matched = required.filter(matches);
+  const missing = required.filter((term) => !matches(term));
 
   const coverage = required.length === 0 ? 0 : matched.length / required.length;
   const action = normalizeTerm(features.action);
   const domainHit = termSet(requirements.domainTerms).some(
-    (term) => ownedSet.has(term) || (term.length > 2 && action.includes(term)),
+    (term) => matches(term) || (term.length > 2 && action.includes(term)),
   );
 
   const raw =

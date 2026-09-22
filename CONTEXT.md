@@ -39,8 +39,8 @@ An integer 0–100 expressing how far one bullet's Feature Extraction overlaps o
 _Avoid_: relevance score, relevanceScore, rating, percentage match
 
 **Overlap Gap**:
-A bullet whose extracted skills and tools do not appear in the JD Requirements; the condition that makes a bullet a candidate for being cut or replaced.
-_Avoid_: irrelevant, low relevance, mismatch
+A bullet that names none of the job's skills or tools. Most bullets on a real resume have one — a resume states achievements while the stack usually lives in a single section — so an Overlap Gap is a signal to re-read the bullet against the job, never a verdict that it does not belong.
+_Avoid_: irrelevant, low relevance, mismatch, off target
 
 **Evidence Gap**:
 A bullet that carries no measured result; the condition that triggers a question to the candidate.

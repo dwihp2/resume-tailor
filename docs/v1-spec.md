@@ -7,7 +7,7 @@ One candidate tailors one uploaded resume to one pasted JD and leaves with rewri
 ## Acceptance
 
 1. Upload a resume PDF, paste a JD, and the tool segments the resume into bullets the user can **edit, merge, drop, reorder, or add to before scoring**, and can clear a whole noisy section (a skill list, a contact block) in one confirmed action.
-2. Every bullet gets a Match Score with the matched terms that justify it, listed worst-first, and groupable into All / Worth fixing (names the job's stack but states no result) / Off target / Already quantified.
+2. Every bullet gets a Match Score with the matched terms that justify it, listed worst-first, and groupable into All / Worth fixing (names the job's stack but states no result) / Overlap gap / Already quantified.
 3. Bullets carrying an Overlap Gap or an Evidence Gap get one question each, worded per gap type; answering stores a Story and its Story Facts.
 4. A Revision is generated from the bullet plus its Story Facts, shown as a before/after diff, and can be accepted, edited, or rejected.
 5. Rejecting a Revision never dead-ends: the rejected revision stays visible, the answer box stays open, and the next rewrite is one click away as an *additional* revision. The generator is deliberately not re-run on rejection — the same inputs mostly reproduce the text the user just rejected, and a silent extra model call is worse than an explicit click.
@@ -34,6 +34,8 @@ Step 1 is not optional polish: PDF line wrapping routinely splits one bullet int
 Stage 2 runs once per JD rather than once per bullet — it is both the cost fix and the reason scoring is reproducible.
 
 Between stages 6 and 7 the candidate may ask for a **draft** of their answer from their notes. The draft is never persisted: it lands in the answer box for the candidate to change or accept, so the Story stays something the candidate wrote.
+
+**Measured, 2026-09-22:** a real 76-bullet resume against one fullstack JD, scored by DeepSeek — 76 bullets in 20s, and only 10 bullets named any of the job's stack terms. Coverage (the 60-point component) therefore contributes nothing to most scores, and the ordering is driven by the evidence and scope bonuses. That is a property of resumes, not a matcher bug: a resume states achievements while the stack lives in one section. `SCORING_VERSION` 1.1.0 tightened the matcher so `React Native` counts as React and `Postgres` as PostgreSQL, which moved the top bullet from 35 to 47; retuning the weights is still an open decision, and it is a one-line change plus a version bump.
 
 ## Data model (delta vs PRD §4)
 

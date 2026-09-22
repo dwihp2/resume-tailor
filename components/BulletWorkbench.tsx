@@ -344,7 +344,7 @@ type Focus = "all" | "worth-fixing" | "off-target" | "quantified";
 const FOCUS_LABELS: Record<Focus, string> = {
   all: "All",
   "worth-fixing": "Worth fixing",
-  "off-target": "Off target",
+  "off-target": "Overlap gap",
   quantified: "Already quantified",
 };
 

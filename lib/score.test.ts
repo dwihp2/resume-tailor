@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SCORING_VERSION, normalizeTerm, scoreBullet } from "./score";
+import { SCORING_VERSION, normalizeTerm, scoreBullet, termsMatch } from "./score";
 import type { BulletFeatures, JdRequirements } from "./schemas";
 
 const requirements: JdRequirements = {
@@ -42,6 +42,16 @@ describe("scoreBullet", () => {
     expect(result.missing).toEqual(["postgresql", "prisma", "react", "typescript"]);
   });
 
+  it("pays coverage when the resume names the stack differently than the job", () => {
+    const result = scoreBullet(
+      { ...strong, skills: ["React Native", "TS"], tools: ["postgres"], hasMetric: false, metric: null },
+      requirements,
+    );
+    expect(result.matched).toEqual(["postgresql", "react", "typescript"]);
+    expect(result.score).toBeGreaterThan(0);
+    expect(result.overlapGap).toBe(false);
+  });
+
   it("pays for a measured result", () => {
     const withoutMetric = scoreBullet({ ...strong, hasMetric: false, metric: null }, requirements);
     const withMetric = scoreBullet(strong, requirements);
@@ -69,6 +79,25 @@ describe("scoreBullet", () => {
     expect(Number.isFinite(empty.score)).toBe(true);
     expect(empty.score).toBe(35);
     expect(empty.overlapGap).toBe(true);
+  });
+});
+
+describe("termsMatch", () => {
+  it("matches a technology a resume names differently", () => {
+    expect(termsMatch("react", "react native")).toBe(true);
+    expect(termsMatch("postgresql", "postgres")).toBe(true);
+    expect(termsMatch("node.js", "nodejs")).toBe(true);
+    expect(termsMatch("typescript", "ts")).toBe(true);
+  });
+
+  it("keeps generic short terms from matching by containment", () => {
+    expect(termsMatch("go", "go to market")).toBe(false);
+    expect(termsMatch("go", "golang")).toBe(true);
+    expect(termsMatch("react", "preact")).toBe(false);
+  });
+
+  it("still refuses two genuinely different technologies", () => {
+    expect(termsMatch("figma", "postgresql")).toBe(false);
   });
 });
 

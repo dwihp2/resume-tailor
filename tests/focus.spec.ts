@@ -26,7 +26,7 @@ test("groups scored bullets so the highest-leverage ones are findable", async ({
   await expect(page.getByTestId("bullet-card")).toHaveCount(8);
   const chips = page.getByTestId("focus-filters");
   await expect(chips).toContainText("All (8)");
-  await expect(chips).toContainText("Off target (7)");
+  await expect(chips).toContainText("Overlap gap (7)");
   await expect(chips).toContainText("Already quantified (2)");
   await expect(chips).toContainText("Worth fixing (0)");
 

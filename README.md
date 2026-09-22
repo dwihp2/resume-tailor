@@ -72,7 +72,7 @@ no bullet glyph), scores all 8 bullets, and asserts they render worst-first with
 the weakest one. `tests/segmentation.spec.ts` covers the editor that runs before scoring: edit, merge, reorder,
 drop and add, it checks that only the surviving bullets get scored, and it checks that editing a scored bullet
 marks that score stale — and withdraws the question that belonged to the old text — until the run is scored again. `tests/focus.spec.ts` checks the triage groups (All /
-Worth fixing / Off target / Already quantified) and that their counts account for every bullet. `tests/sections.spec.ts` clears a whole section in one confirmed action, including the
+Worth fixing / Overlap gap / Already quantified) and that their counts account for every bullet. `tests/sections.spec.ts` clears a whole section in one confirmed action, including the
 bullets that never got a heading. `tests/notes.spec.ts` drafts an answer from the candidate's notes, saves it,
 rewrites from it, and checks that a bullet the notes do not cover is refused instead of invented. `tests/loop.spec.ts` drives the full loop
 in the browser: answer a question, generate a revision, accept it and copy it out, reject and regenerate without
