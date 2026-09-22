@@ -1,4 +1,4 @@
-# Jev-Tailor
+# Resume Tailor
 
 Tailors one resume to one job description: it scores every resume bullet against the job, asks the candidate for the evidence a bullet is missing, and rewrites that bullet from the candidate's own answer.
 
