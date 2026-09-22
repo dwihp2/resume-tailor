@@ -162,8 +162,10 @@ The following are cut to V2 by design (see "Cut to V2" in [docs/v1-spec.md](docs
 
 The repo deploys to Vercel from `main` (project `resume-tailor`).
 
-- `vercel-build` runs `prisma migrate deploy && next build`, so a push applies pending migrations and then builds;
-  `postinstall` runs `prisma generate`, because the generated client is gitignored and nothing else would create it.
+- `vercel-build` runs `node scripts/check-db-url.mjs && prisma migrate deploy && next build`: the first step fails
+  the build when the configured database URL is not one `@prisma/adapter-pg` can dial, which is the only way to
+  check a Sensitive variable before the app is serving traffic. It prints the variable name and scheme, never the
+  value.
 - Environment: `DEEPSEEK_API_KEY` plus a Postgres database. The Prisma Postgres addon provides `POSTGRES_URL`
   (direct TCP) alongside `DATABASE_URL` and `PRISMA_DATABASE_URL` (proxy). This app dials Postgres through
   `@prisma/adapter-pg`, so `lib/db.ts` prefers `POSTGRES_URL` and rejects a `prisma+postgres://` URL with an

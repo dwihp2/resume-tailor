@@ -1,0 +1,8 @@
+# Never upload secrets or build output to a deployment.
+.env
+.env.*
+!.env.example
+/lib/generated/
+.next/
+/test-results/
+/playwright-report/
