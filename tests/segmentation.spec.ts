@@ -22,27 +22,33 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   const rows = page.getByTestId("segmentation-row");
   const inputs = page.getByTestId("bullet-input");
   const settle = () => page.waitForResponse((response) => response.url().includes("/api/bullets"));
-  // The panel collapses itself once a run has scores, so open it explicitly
-  // rather than toggling a summary that may already be open.
-  const openPanel = () =>
-    page
+  // The panel collapses itself once a run has scores, so open it explicitly and
+  // prove the inputs are actually reachable — otherwise a closed panel turns
+  // into a two-minute timeout instead of a clear failure.
+  const openPanel = async () => {
+    await page
       .getByTestId("segmentation-panel")
       .evaluate((node) => {
         (node as HTMLDetailsElement).open = true;
       });
+    await expect(inputs.first()).toBeVisible({ timeout: 5_000 });
+  };
 
   await expect(rows).toHaveCount(5);
 
   // Edit: a bullet the extractor read badly can be rewritten by hand.
+  await openPanel();
   await expect(page.getByTestId("save-bullet").first()).toBeDisabled();
-  await inputs.first().fill("Frontend engineer with six years of experience building internal tools.");
+  await inputs.first().fill("Frontend engineer with six years of experience, shipping internal tools end to end.");
   const edited = settle();
+  await expect(page.getByTestId("save-bullet").first()).toBeEnabled();
   await page.getByTestId("save-bullet").first().click();
   expect((await edited).ok()).toBeTruthy();
-  await expect(inputs.first()).toHaveValue("Frontend engineer with six years of experience building internal tools.");
+  await expect(inputs.first()).toHaveValue("Frontend engineer with six years of experience, shipping internal tools end to end.");
 
   // Merge: a bullet that ended up as its own entry joins the one above it.
   const merged = settle();
+  await expect(page.getByTestId("merge-bullet").nth(4)).toBeEnabled();
   await page.getByTestId("merge-bullet").nth(4).click();
   expect((await merged).ok()).toBeTruthy();
   await expect(rows).toHaveCount(4);
@@ -64,6 +70,7 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   // Add: text the extractor lost entirely can be restored by hand.
   await page.getByTestId("add-bullet-input").fill("Led the migration off the legacy .NET tools");
   const added = settle();
+  await expect(page.getByTestId("add-bullet")).toBeEnabled();
   await page.getByTestId("add-bullet").click();
   expect((await added).ok()).toBeTruthy();
   await expect(rows).toHaveCount(4);
