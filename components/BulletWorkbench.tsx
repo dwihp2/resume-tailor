@@ -135,7 +135,17 @@ function BulletCard({ bullet, hasNotes }: { bullet: RunBulletView; hasNotes: boo
         </div>
       </div>
 
-      {bullet.question ? (
+      {bullet.stale ? (
+        <p
+          data-testid="stale-question-notice"
+          className="rounded border border-neutral-800 bg-neutral-950/60 px-3 py-2 text-xs text-neutral-400"
+        >
+          This bullet changed since it was scored, so the question that belonged to it is gone. Score the run again
+          for a question about the text you have now.
+        </p>
+      ) : null}
+
+      {bullet.question && !bullet.stale ? (
         <div className="space-y-2 rounded border border-neutral-800 bg-neutral-950/60 p-3">
           <p data-testid="bullet-question" className="text-sm text-neutral-300">
             {bullet.question}
@@ -201,21 +211,22 @@ function BulletCard({ bullet, hasNotes }: { bullet: RunBulletView; hasNotes: boo
               {draftNote}
             </p>
           ) : null}
-          {bullet.stories.length > 0 ? (
-            <ul data-testid="story-facts" className="space-y-1 text-xs text-neutral-400">
-              {bullet.stories.map((story) => (
-                <li key={story.id}>
-                  You said: <span className="text-neutral-300">{story.rawInput}</span>
-                  {story.facts.length > 0 ? (
-                    <span className="text-neutral-500"> — facts: {story.facts.join(", ")}</span>
-                  ) : (
-                    <span className="text-amber-400"> — no facts found in that answer</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
+      ) : null}
+
+      {bullet.stories.length > 0 ? (
+        <ul data-testid="story-facts" className="space-y-1 text-xs text-neutral-400">
+          {bullet.stories.map((story) => (
+            <li key={story.id}>
+              You said: <span className="text-neutral-300">{story.rawInput}</span>
+              {story.facts.length > 0 ? (
+                <span className="text-neutral-500"> — facts: {story.facts.join(", ")}</span>
+              ) : (
+                <span className="text-amber-400"> — no facts found in that answer</span>
+              )}
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {error ? (

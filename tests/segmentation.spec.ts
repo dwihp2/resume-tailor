@@ -85,12 +85,17 @@ test("edits, merges, reorders, drops and adds bullets before scoring", async ({ 
   expect((await stale).ok()).toBeTruthy();
   await expect(page.getByTestId("stale-score")).toHaveCount(1);
 
+  // The question belonged to the old text, so it is withdrawn, not answered.
+  await expect(page.getByTestId("stale-question-notice")).toHaveCount(1);
+
   // Re-scoring clears the flag, because the score now describes the current text.
   await openPanel();
   const reEvaluated = page.waitForResponse((response) => response.url().includes("/evaluate"));
   await page.getByTestId("score-bullets").click();
   expect((await reEvaluated).ok()).toBeTruthy();
   await expect(page.getByTestId("stale-score")).toHaveCount(0);
+  await expect(page.getByTestId("stale-question-notice")).toHaveCount(0);
+  await expect(page.getByTestId("bullet-question").first()).toBeVisible();
   await expect(page.getByTestId("progress")).toContainText("7 scored");
 
   // The run list is the way back in, and it reports the same counts.
