@@ -157,3 +157,19 @@ The following are cut to V2 by design (see "Cut to V2" in [docs/v1-spec.md](docs
   skill-gap analysis.
 - Master Resume and Resume Variants; Candidate Preferences; Story Library imports (e.g. seeding from an existing
   career narrative document).
+
+## Deploying
+
+The repo deploys to Vercel from `main` (project `resume-tailor`).
+
+- `vercel-build` runs `prisma migrate deploy && next build`, so a push applies pending migrations and then builds;
+  `postinstall` runs `prisma generate`, because the generated client is gitignored and nothing else would create it.
+- Environment: `DEEPSEEK_API_KEY` plus a Postgres database. The Prisma Postgres addon provides `POSTGRES_URL`
+  (direct TCP) alongside `DATABASE_URL` and `PRISMA_DATABASE_URL` (proxy). This app dials Postgres through
+  `@prisma/adapter-pg`, so `lib/db.ts` prefers `POSTGRES_URL` and rejects a `prisma+postgres://` URL with an
+  explanatory error instead of a confusing connection failure.
+- Variables stored as **Sensitive** cannot be read back — `vercel env pull` writes `[SENSITIVE]` — so anything
+  needing the real value (a migration from a laptop, say) has to run inside Vercel. That is why migrations are a
+  build step rather than a command you run locally.
+- New Vercel projects put deployments behind **Vercel Authentication**: the app answers `302` to
+  `vercel.com/sso-api` until that is switched off under Project → Settings → Deployment Protection.
