@@ -69,6 +69,11 @@ Auth and the SaaS template · DOCX/PDF generation · voice storytelling · mock 
 
 **P1, cut first if the deadline bites:** one "experience narrative" textarea per run, appended to revision context.
 
+## Known V1 limitations
+
+- Editing a bullet that has already been scored leaves the previous Match Score and matched terms on screen until the run is scored again; the UI labels that step "edit and re-score". Detecting staleness exactly means storing the evaluated text on each evaluation, which is deferred rather than approximated with a guess.
+- PDF extraction inserts spaces inside words often enough that headings arrive broken ("SUMM ARY"); those are repaired by canonicalising known section names, but an unknown heading keeps whatever the extractor produced.
+
 ## Verification bar
 
 - Unit tests (`npx vitest run`): scoring determinism and weights, segmentation including wrap re-joining, the word diff, the invented-number guard, and the provider guard. Determinism is the behaviour worth a permanent test, because the whole design rests on it.

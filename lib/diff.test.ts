@@ -23,7 +23,7 @@ describe("diffWords", () => {
   });
 
   it("keeps the recovered words in the join when whole clauses are replaced", () => {
-    const { before, after } = diffWords("Handled three clients", "Handled six clients for a bank");
+    const { after } = diffWords("Handled three clients", "Handled six clients for a bank");
     expect(after.filter((token) => token.changed).map((token) => token.value)).toEqual([
       "six",
       "for",
